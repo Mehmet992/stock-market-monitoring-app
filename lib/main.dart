@@ -1,20 +1,24 @@
-import 'package:stock_market_monitoring_app/Services/generic_market_service.dart';
+import 'package:flutter/material.dart';
+import 'package:stock_market_monitoring_app/UI/app_shell.dart';
 
-void main() async {
-  print("Starting the service!");
+void main() {
+  runApp(const MyApp());
+}
 
-  final service = GenericMarketService();
+class MyApp extends StatelessWidget {
+  const MyApp({super.key});
 
-  service.marketDataStream.listen((assets) {
-    print('\n--- NEW DATA FETCHED AT ${DateTime.now()} ---');
-    for (var asset in assets) {
-      print('${asset.displayName} (${asset.symbol}): ${asset.regularPrice} ${asset.currency}');
-    }
-  });
-
-  service.startPolling(interval: const Duration(seconds: 10));
-
-  await Future.delayed(const Duration(seconds: 35));
-  service.dispose();
-  print('\nTest finished.');
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      title: 'Stock Market Monitor',
+      theme: ThemeData(
+        useMaterial3: true,
+        brightness: Brightness.dark,
+        primarySwatch: Colors.blue,
+        scaffoldBackgroundColor: Colors.grey[900],
+      ),
+      home: const AppShell(),
+    );
+  }
 }
