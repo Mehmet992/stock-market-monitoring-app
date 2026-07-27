@@ -9,8 +9,15 @@ class GenericMarketService {
   final StreamController<List<MarketAsset>> _marketDataController = StreamController<List<MarketAsset>>.broadcast();
   Timer? _timer;
 
-  //Getting the data stream
-  Stream<List<MarketAsset>> get marketDataStream => _marketDataController.stream;
+  List<MarketAsset>? _lastData;
+  Stream<List<MarketAsset>> get marketDataStream => _getStreamWithCache();
+
+  Stream<List<MarketAsset>> _getStreamWithCache() async* {
+    if (_lastData != null) {
+      yield _lastData!;
+    }
+    yield* _marketDataController.stream;
+  }
 
   void startPolling({Duration interval = const Duration(seconds: 30)}) {
     //Avoiding multiple timers
@@ -38,6 +45,7 @@ class GenericMarketService {
     final List<MarketAsset> assets = await fetchAllAssetsConcurrently();
 
     if (assets.isNotEmpty && !_marketDataController.isClosed) {
+      _lastData = assets;
       _marketDataController.add(assets);
     }
   }
