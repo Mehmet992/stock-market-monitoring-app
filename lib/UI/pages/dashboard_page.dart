@@ -18,87 +18,92 @@ class DashboardPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return StreamBuilder<List<MarketAsset>>(
-      stream: marketService.marketDataStream,
+    return StreamBuilder<Set<String>>(
+      stream: watchlistService.watchlistStream,
+      initialData: watchlistService.watchlist,
       builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return const LoadingSpinner(message: 'Loading market data...');
-        }
+        return StreamBuilder<List<MarketAsset>>(
+        stream: marketService.marketDataStream,
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const LoadingSpinner(message: 'Loading market data...');
+          }
 
-        if (snapshot.hasError) {
-          return ErrorDisplay(
-            message: snapshot.error.toString(),
-          );
-        }
+          if (snapshot.hasError) {
+            return ErrorDisplay(
+              message: snapshot.error.toString(),
+            );
+          }
 
-        if (!snapshot.hasData || snapshot.data!.isEmpty) {
-          return const EmptyStateWidget(
-            title: 'No Data Available',
-            message: 'Unable to fetch market data. Please check your connection.',
-            icon: Icons.cloud_off,
-          );
-        }
+          if (!snapshot.hasData || snapshot.data!.isEmpty) {
+            return const EmptyStateWidget(
+              title: 'No Data Available',
+              message: 'Unable to fetch market data. Please check your connection.',
+              icon: Icons.cloud_off,
+            );
+          }
 
-        final assets = snapshot.data!;
+          final assets = snapshot.data!;
 
-        return SingleChildScrollView(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Padding(
-                padding: const EdgeInsets.all(16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Market Overview',
-                      style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                            color: Colors.white,
-                            fontWeight: FontWeight.bold,
-                          ),
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      'Last updated: ${DateTime.now().toLocal()}',
+          return SingleChildScrollView(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Market Overview',
+                        style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        'Last updated: ${DateTime.now().toLocal()}',
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: Colors.grey[500],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                if (watchlistService.watchlist.isNotEmpty) ...[
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    child: Text(
+                      'Your Watchlist (${watchlistService.watchlist.length})',
                       style: TextStyle(
-                        fontSize: 12,
-                        color: Colors.grey[500],
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.green[400],
                       ),
                     ),
-                  ],
-                ),
-              ),
-              if (watchlistService.watchlist.isNotEmpty) ...[
+                  ),
+                  ..._buildWatchlistAssets(assets, context),
+                  const SizedBox(height: 24),
+                ],
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 16),
                   child: Text(
-                    'Your Watchlist (${watchlistService.watchlist.length})',
-                    style: TextStyle(
+                    'All Assets',
+                    style: const TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.bold,
-                      color: Colors.green[400],
+                      color: Colors.white,
                     ),
                   ),
                 ),
-                ..._buildWatchlistAssets(assets, context),
-                const SizedBox(height: 24),
+                ..._buildAllAssets(assets, context),
               ],
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                child: Text(
-                  'All Assets',
-                  style: const TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white,
-                  ),
-                ),
-              ),
-              ..._buildAllAssets(assets, context),
-            ],
-          ),
-        );
-      },
+            ),
+          );
+        },
+      );},
     );
   }
 

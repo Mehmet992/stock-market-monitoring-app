@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "720592513771",
+    "project_id": "examroadmaptrackerap-49c86e37",
+    "storage_bucket": "examroadmaptrackerap-49c86e37.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:720592513771:android:b228123894f400416e2cae",
+        "android_client_info": {
+          "package_name": "com.example.stock_market_monitoring_app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyASNTnfcEdmhr5jHdGCQAtrBnn6uiXFs7s"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
