@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:stock_market_monitoring_app/Services/generic_market_service.dart';
 import 'package:stock_market_monitoring_app/Services/watchlist_service.dart';
+import 'package:stock_market_monitoring_app/UI/pages/settings_page.dart';
 import 'pages/dashboard_page.dart';
 import 'pages/watchlist_page.dart';
 import 'pages/category_pages/forex_page.dart';
@@ -134,27 +135,6 @@ class _AppShellState extends State<AppShell> {
                 ),
               ],
             ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class SettingsPage extends StatelessWidget {
-  const SettingsPage({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(Icons.settings, size: 64, color: Colors.grey[400]),
-          const SizedBox(height: 16),
-          const Text(
-            'Settings Coming Soon',
-            style: TextStyle(fontSize: 18, color: Colors.grey),
           ),
         ],
       ),
