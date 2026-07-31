@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:stock_market_monitoring_app/Services/auth_service.dart';
+import 'package:stock_market_monitoring_app/Services/database_service.dart';
 
 class SignupPage extends StatefulWidget {
   const SignupPage({super.key});
@@ -13,11 +14,18 @@ class _SignupPageState extends State<SignupPage> {
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
   final _authService = AuthService();
+  late final DatabaseService _databaseService;
 
   bool _showPassword = false;
   bool _isLoading = false;
   String? _errorMessage;
   bool _signupSuccess = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _databaseService = DatabaseService();
+  }
 
   @override
   void dispose() {
@@ -62,6 +70,9 @@ class _SignupPageState extends State<SignupPage> {
         email: _emailController.text.trim(),
         password: _passwordController.text,
       );
+
+      // Save user profile to database immediately
+      await _databaseService.saveUserProfile();
 
       setState(() {
         _signupSuccess = true;

@@ -18,7 +18,7 @@ class DashboardPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return StreamBuilder<Set<String>>(
+    return StreamBuilder<List<MarketAsset>>(
       stream: watchlistService.watchlistStream,
       initialData: watchlistService.watchlist,
       builder: (context, snapshot) {
@@ -117,7 +117,7 @@ class DashboardPage extends StatelessWidget {
         asset: asset,
         isWatched: true,
         onWatchlistToggle: () {
-          watchlistService.toggleWatchlist(asset.symbol);
+          watchlistService.toggleWatchlist(asset);
         },
         onTap: () {
           Navigator.push(
@@ -141,7 +141,7 @@ class DashboardPage extends StatelessWidget {
         asset: asset,
         isWatched: isWatched,
         onWatchlistToggle: () {
-          watchlistService.toggleWatchlist(asset.symbol);
+          watchlistService.toggleWatchlist(asset);
         },
         onTap: () {
           Navigator.push(

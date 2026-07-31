@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:flutter/foundation.dart';
 
 import 'package:stock_market_monitoring_app/Models/market_asset.dart';
 import 'package:stock_market_monitoring_app/main_api.dart';
@@ -23,6 +24,11 @@ class GenericMarketService {
     //Avoiding multiple timers
     stopPolling();
 
+    if (kDebugMode) {
+      debugPrint(
+          '[GenericMarketService] Started market data polling (interval: ${interval.inSeconds}s)');
+    }
+
     _fetchAndBroadcast();
 
     _timer = Timer.periodic(interval, (_) {
@@ -31,6 +37,9 @@ class GenericMarketService {
   }
 
   void stopPolling() {
+    if (_timer != null && kDebugMode) {
+      debugPrint('[GenericMarketService] Stopped market data polling');
+    }
     _timer?.cancel();
     _timer = null;
   }
@@ -47,6 +56,10 @@ class GenericMarketService {
     if (assets.isNotEmpty && !_marketDataController.isClosed) {
       _lastData = assets;
       _marketDataController.add(assets);
+      if (kDebugMode) {
+        debugPrint(
+            '[GenericMarketService] Broadcasted ${assets.length} assets');
+      }
     }
   }
 }

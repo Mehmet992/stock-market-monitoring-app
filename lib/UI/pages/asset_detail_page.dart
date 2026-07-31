@@ -15,7 +15,7 @@ class AssetDetailPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return StreamBuilder<Set<String>>(
+    return StreamBuilder<List<MarketAsset>>(
       stream: watchlistService.watchlistStream,
       builder: (context, snapshot) {
         final isWatched = watchlistService.isWatching(asset.symbol);
@@ -30,7 +30,7 @@ class AssetDetailPage extends StatelessWidget {
             asset: asset,
             isWatched: isWatched,
             onWatchlistToggle: () {
-              watchlistService.toggleWatchlist(asset.symbol);
+              watchlistService.toggleWatchlist(asset);
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
                   content: Text(

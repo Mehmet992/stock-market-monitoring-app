@@ -75,7 +75,7 @@ class AuthenticationWrapper extends StatelessWidget {
 
         if (snapshot.hasData) {
           final user = snapshot.data!;
-          // If email is not verified, show verification page
+          // If email is not verified and the user is not an anonymous user, show verification page
           if (!user.emailVerified && !user.isAnonymous) {
             return const EmailVerificationPage();
           }

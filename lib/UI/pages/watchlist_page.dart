@@ -11,10 +11,10 @@ class WatchlistPage extends StatelessWidget {
   final WatchlistService watchlistService;
 
   const WatchlistPage({
-    Key? key,
+    super.key,
     required this.marketService,
     required this.watchlistService,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -39,7 +39,7 @@ class WatchlistPage extends StatelessWidget {
           );
         }
 
-        return StreamBuilder<Set<String>>(
+        return StreamBuilder<List<MarketAsset>>(
           stream: watchlistService.watchlistStream,
           builder: (context, watchlistSnapshot) {
             final watchlist = watchlistService.watchlist;
@@ -53,8 +53,9 @@ class WatchlistPage extends StatelessWidget {
             }
 
             final allAssets = marketSnapshot.data!;
+            final watchlistIds = watchlist.map((a) => a.symbol);
             final watchedAssets = allAssets
-                .where((asset) => watchlist.contains(asset.symbol))
+                .where((asset) => watchlistIds.contains(asset.symbol))
                 .toList();
 
             if (watchedAssets.isEmpty) {
@@ -133,7 +134,7 @@ class WatchlistPage extends StatelessWidget {
                         },
                       ),
                     );
-                  }).toList(),
+                  }),
                 ],
               ),
             );

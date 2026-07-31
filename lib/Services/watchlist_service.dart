@@ -1,40 +1,123 @@
 import 'dart:async';
+import 'package:flutter/foundation.dart';
+import 'package:stock_market_monitoring_app/Enums/asset_types.dart';
+import 'package:stock_market_monitoring_app/Models/market_asset.dart';
+import 'package:stock_market_monitoring_app/Services/database_service.dart';
 
 class WatchlistService {
-  final StreamController<Set<String>> _watchlistController =
-      StreamController<Set<String>>.broadcast();
-  
-  Set<String> _watchlist = {};
+  final StreamController<List<MarketAsset>> _watchlistController =
+      StreamController<List<MarketAsset>>.broadcast();
 
-  //Gets the watchlistStream
-  Stream<Set<String>> get watchlistStream => _watchlistController.stream;
+  List<MarketAsset> _watchlist = [];
+  late DatabaseService _databaseService;
 
-  //Gets the current list of watchlist
-  Set<String> get watchlist => _watchlist;
+  WatchlistService() {
+    _databaseService = DatabaseService();
+  }
 
-  void addAsset(String symbol) {
-    if (!_watchlist.contains(symbol)) {
-      _watchlist.add(symbol);
-      _watchlistController.add(Set.from(_watchlist)); //Getting a fresh copy of _watchlist
+  /// Gets the watchlist stream
+  Stream<List<MarketAsset>> get watchlistStream => _watchlistController.stream;
+
+  /// Gets the current list of watchlist
+  List<MarketAsset> get watchlist => _watchlist;
+
+  /// Initialize watchlist from database
+  Future<void> initializeWatchlist() async {
+    try {
+      _watchlist = await _databaseService.loadWatchlist();
+      _watchlistController.add(List.from(_watchlist));
+      if (kDebugMode) {
+        debugPrint(
+            '[WatchlistService] Watchlist initialized with ${_watchlist.length} items');
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        debugPrint('[WatchlistService] Error initializing watchlist: $e');
+      }
+      _watchlist = [];
+      _watchlistController.add([]);
     }
   }
 
-  void removeAsset(String symbol) {
-    if (_watchlist.contains(symbol)) {
-      _watchlist.remove(symbol);
-      _watchlistController.add(Set.from(_watchlist)); //Getting a fresh copy of _watchlist
+  /// Add asset to local watchlist and persist to database
+  Future<void> addAsset(MarketAsset asset) async {
+    if (!_watchlist.any((a) => a.symbol == asset.symbol)) {
+      _watchlist.add(asset);
+      _watchlistController.add(List.from(_watchlist));
+      if (kDebugMode) {
+        debugPrint(
+            '[WatchlistService] Added asset ${asset.symbol} to local watchlist');
+      }
+      try {
+        await _databaseService.addToWatchlist(asset);
+      } catch (e) {
+        if (kDebugMode) {
+          debugPrint(
+              '[WatchlistService] Error persisting added asset ${asset.symbol}: $e');
+        }
+      }
     }
   }
 
+  /// Add asset by symbol only (creates placeholder and persists to database)
+  Future<void> addAssetBySymbol(String symbol) async {
+    if (!_watchlist.any((a) => a.symbol == symbol)) {
+      final placeholder = MarketAsset(
+        regularPrice: 0.0,
+        previousClose: 0.0,
+        currency: 'USD',
+        symbol: symbol,
+        displayName: symbol,
+        type: AssetType.crypto,
+      );
+      if (kDebugMode) {
+        debugPrint(
+            '[WatchlistService] Asset $symbol added to watchlist as placeholder');
+      }
+      await addAsset(placeholder);
+    }
+  }
+
+  /// Remove asset from local watchlist and persist deletion to database
+  Future<void> removeAsset(String symbol) async {
+    if (_watchlist.any((a) => a.symbol == symbol)) {
+      _watchlist.removeWhere((a) => a.symbol == symbol);
+      _watchlistController.add(List.from(_watchlist));
+      if (kDebugMode) {
+        debugPrint(
+            '[WatchlistService] Removed asset $symbol from local watchlist');
+      }
+      try {
+        await _databaseService.removeFromWatchlist(symbol);
+      } catch (e) {
+        if (kDebugMode) {
+          debugPrint(
+              '[WatchlistService] Error persisting removal of asset $symbol: $e');
+        }
+      }
+    }
+  }
+
+  /// Check if asset is in watchlist
   bool isWatching(String symbol) {
-    return _watchlist.contains(symbol);
+    return _watchlist.any((a) => a.symbol == symbol);
   }
 
-  void toggleWatchlist(String symbol) {
-    if (isWatching(symbol)) {
-      removeAsset(symbol);
+  /// Toggle asset in watchlist (with MarketAsset object)
+  Future<void> toggleWatchlist(MarketAsset asset) async {
+    if (isWatching(asset.symbol)) {
+      await removeAsset(asset.symbol);
     } else {
-      addAsset(symbol);
+      await addAsset(asset);
+    }
+  }
+
+  /// Toggle asset by symbol only (backward compatibility)
+  Future<void> toggleWatchlistBySymbol(String symbol) async {
+    if (isWatching(symbol)) {
+      await removeAsset(symbol);
+    } else {
+      await addAssetBySymbol(symbol);
     }
   }
 

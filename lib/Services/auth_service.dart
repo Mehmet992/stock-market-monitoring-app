@@ -1,4 +1,5 @@
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/foundation.dart';
 
 class AuthService {
   final FirebaseAuth _firebaseAuth = FirebaseAuth.instance;
@@ -19,6 +20,10 @@ class AuthService {
         password: password,
       );
 
+      if (kDebugMode) {
+        debugPrint('[AuthService] Signed up user with email: $email');
+      }
+
       // Send email verification
       await sendEmailVerificationWithRedirect();
     } on FirebaseAuthException catch (e) {
@@ -35,6 +40,9 @@ class AuthService {
         email: email,
         password: password,
       );
+      if (kDebugMode) {
+        debugPrint('[AuthService] Signed in user with email: $email');
+      }
     } on FirebaseAuthException catch (e) {
       throw _handleAuthException(e);
     }
@@ -43,6 +51,9 @@ class AuthService {
   Future<void> signInAnonymously() async {
     try {
       await _firebaseAuth.signInAnonymously();
+      if (kDebugMode) {
+        debugPrint('[AuthService] Signed in anonymously');
+      }
     } on FirebaseAuthException catch (e) {
       throw _handleAuthException(e);
     }
@@ -55,6 +66,10 @@ class AuthService {
       final user = _firebaseAuth.currentUser;
       if (user != null && !user.emailVerified) {
         await user.sendEmailVerification(actionCodeSettings);
+        if (kDebugMode) {
+          debugPrint(
+              '[AuthService] Verification email sent to: ${user.email}');
+        }
       }
     } on FirebaseAuthException catch (e) {
       throw _handleAuthException(e);
@@ -86,7 +101,11 @@ class AuthService {
 
     if (user != null) {
       await user.reload();
-      return _firebaseAuth.currentUser?.emailVerified ?? false;
+      final isVerified = _firebaseAuth.currentUser?.emailVerified ?? false;
+      if (kDebugMode) {
+        debugPrint('[AuthService] Checked email verification: $isVerified');
+      }
+      return isVerified;
     }
 
     return false;
@@ -104,6 +123,10 @@ class AuthService {
           password: password,
         );
         await user.linkWithCredential(credential);
+        if (kDebugMode) {
+          debugPrint(
+              '[AuthService] Linked anonymous account to email: $email');
+        }
         await sendEmailVerificationWithRedirect();
       }
     } on FirebaseAuthException catch (e) {
@@ -113,17 +136,26 @@ class AuthService {
 
   Future<void> signOut() async {
     await _firebaseAuth.signOut();
+    if (kDebugMode) {
+      debugPrint('[AuthService] User signed out');
+    }
   }
 
   Future<void> sendPasswordResetEmail(String email) async {
     try {
       await _firebaseAuth.sendPasswordResetEmail(email: email);
+      if (kDebugMode) {
+        debugPrint('[AuthService] Password reset email sent to: $email');
+      }
     } on FirebaseAuthException catch (e) {
       throw _handleAuthException(e);
     }
   }
 
   String _handleAuthException(FirebaseAuthException e) {
+    if (kDebugMode) {
+      debugPrint('[AuthService] Auth error (${e.code}): ${e.message}');
+    }
     switch (e.code) {
       case 'weak-password':
         return 'The password provided is too weak.';
