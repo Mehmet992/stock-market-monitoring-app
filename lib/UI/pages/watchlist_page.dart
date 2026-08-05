@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:stock_market_monitoring_app/Services/currency_service.dart';
 import 'package:stock_market_monitoring_app/Services/generic_market_service.dart';
 import 'package:stock_market_monitoring_app/Services/watchlist_service.dart';
 import 'package:stock_market_monitoring_app/Models/market_asset.dart';
@@ -53,8 +54,9 @@ class WatchlistPage extends StatelessWidget {
             }
 
             final allAssets = marketSnapshot.data!;
+            final convertedAssets = CurrencyService().convertAssets(allAssets);
             final watchlistIds = watchlist.map((a) => a.symbol);
-            final watchedAssets = allAssets
+            final watchedAssets = convertedAssets
                 .where((asset) => watchlistIds.contains(asset.symbol))
                 .toList();
 
@@ -78,7 +80,7 @@ class WatchlistPage extends StatelessWidget {
                         Text(
                           'My Watchlist',
                           style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                                color: Colors.white,
+                                color: Theme.of(context).colorScheme.onSurface,
                                 fontWeight: FontWeight.bold,
                               ),
                         ),
@@ -87,7 +89,7 @@ class WatchlistPage extends StatelessWidget {
                           '${watchedAssets.length} asset${watchedAssets.length > 1 ? 's' : ''} tracked',
                           style: TextStyle(
                             fontSize: 12,
-                            color: Colors.grey[500],
+                            color: Theme.of(context).colorScheme.onSurfaceVariant,
                           ),
                         ),
                       ],
@@ -128,6 +130,7 @@ class WatchlistPage extends StatelessWidget {
                               builder: (context) => AssetDetailPage(
                                 asset: asset,
                                 watchlistService: watchlistService,
+                                marketService: marketService,
                               ),
                             ),
                           );

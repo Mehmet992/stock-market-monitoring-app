@@ -1,24 +1,30 @@
 import 'package:flutter/material.dart';
+import 'package:stock_market_monitoring_app/Enums/currency.dart';
 import 'package:stock_market_monitoring_app/Models/market_asset.dart';
 
 class AssetDetailView extends StatelessWidget {
   final MarketAsset asset;
   final bool isWatched;
   final VoidCallback onWatchlistToggle;
+  final VoidCallback? onSetTargetPrice;
 
   const AssetDetailView({
-    Key? key,
+    super.key,
     required this.asset,
     required this.isWatched,
     required this.onWatchlistToggle,
-  }) : super(key: key);
+    this.onSetTargetPrice,
+  });
 
   double get priceChange => asset.regularPrice - asset.previousClose;
-  double get changePercent => (priceChange / asset.previousClose) * 100;
+  double get changePercent =>
+      asset.previousClose > 0 ? (priceChange / asset.previousClose) * 100 : 0.0;
   bool get isPositive => priceChange >= 0;
 
   @override
   Widget build(BuildContext context) {
+    final currencyObj = Currency.fromCode(asset.currency);
+
     return SingleChildScrollView(
       padding: const EdgeInsets.all(24),
       child: Column(
@@ -51,7 +57,7 @@ class AssetDetailView extends StatelessWidget {
             child: Column(
               children: [
                 Text(
-                  '${asset.regularPrice.toStringAsFixed(2)}',
+                  asset.regularPrice.toStringAsFixed(2),
                   style: const TextStyle(
                     fontSize: 48,
                     fontWeight: FontWeight.bold,
@@ -61,7 +67,7 @@ class AssetDetailView extends StatelessWidget {
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  asset.currency,
+                  '${currencyObj.code} (${currencyObj.symbol})',
                   style: TextStyle(
                     fontSize: 16,
                     color: Colors.grey[500],
@@ -130,9 +136,18 @@ class AssetDetailView extends StatelessWidget {
               children: [
                 _buildDetailRow('Previous Close', asset.previousClose.toStringAsFixed(2)),
                 const SizedBox(height: 12),
-                _buildDetailRow('Currency', asset.currency),
+                _buildDetailRow('Currency', '${currencyObj.name} (${currencyObj.symbol})'),
                 const SizedBox(height: 12),
                 _buildDetailRow('Type', asset.type.toString().split('.').last.toUpperCase()),
+                if (isWatched) ...[
+                  const SizedBox(height: 12),
+                  _buildDetailRow(
+                    'Target Price',
+                    (asset.targetAlertPrice != null && asset.targetAlertPrice! > 0)
+                        ? '${asset.targetAlertPrice!.toStringAsFixed(2)} ${currencyObj.symbol}'
+                        : 'Not initialized',
+                  ),
+                ],
               ],
             ),
           ),
@@ -155,6 +170,27 @@ class AssetDetailView extends StatelessWidget {
               ),
             ),
           ),
+          if (isWatched && onSetTargetPrice != null) ...[
+            const SizedBox(height: 16),
+            SizedBox(
+              width: double.infinity,
+              child: OutlinedButton.icon(
+                onPressed: onSetTargetPrice,
+                icon: const Icon(Icons.notifications_active),
+                label: Text(
+                  (asset.targetAlertPrice != null && asset.targetAlertPrice! > 0)
+                      ? 'Edit Target Price'
+                      : 'Set Target Price',
+                  style: const TextStyle(fontSize: 16),
+                ),
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: Colors.blueAccent,
+                  side: const BorderSide(color: Colors.blueAccent),
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                ),
+              ),
+            ),
+          ],
         ],
       ),
     );

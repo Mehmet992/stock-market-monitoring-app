@@ -5,8 +5,7 @@ class MarketAssetConfig {
   final String displayName;
   final AssetType type;
 
-  MarketAssetConfig(
-  {
+  MarketAssetConfig({
     required this.symbol,
     required this.displayName,
     required this.type,

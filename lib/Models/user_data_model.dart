@@ -9,6 +9,7 @@ class UserDataModel {
   final Currency defaultCurrency;
   final Theme theme;
   final double pollingTime;
+  final double? backgroundPollingTime;
 
 
   const UserDataModel({
@@ -18,6 +19,7 @@ class UserDataModel {
     required this.defaultCurrency,
     required this.theme,
     required this.pollingTime,
+    this.backgroundPollingTime,
   });
 
   //Factory to generate UserDataModel instance from the Firestore database
@@ -29,7 +31,8 @@ class UserDataModel {
       isAnonymous: data['isAnonymous'] ?? true,
       defaultCurrency: Currency.fromCode(data['defaultCurrency']),
       theme: Theme.fromCode(data['theme']),
-      pollingTime: (data['pollingTime'] as num?)?.toDouble() ?? 10.0,
+      pollingTime: (data['pollingTime'] as num?)?.toDouble() ?? 15.0,
+      backgroundPollingTime: (data['backgroundPollingTime'] as num?)?.toDouble() ?? 3600,
     );
   }
 
@@ -41,6 +44,7 @@ class UserDataModel {
       'defaultCurrency' : defaultCurrency.code,
       'theme' : theme.code,
       'pollingTime' : pollingTime,
+      'backgroundPollingTime' : backgroundPollingTime,
     };
   }
 

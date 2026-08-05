@@ -18,7 +18,7 @@ class SettingsPage extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // Account Section
-            _buildSectionHeader('Account'),
+            _buildSectionHeader(context, 'Account'),
             _buildSettingsCard(
               context,
               icon: Icons.person,
@@ -45,7 +45,7 @@ class SettingsPage extends StatelessWidget {
             const SizedBox(height: 24),
 
             // Preferences Section
-            _buildSectionHeader('Preferences'),
+            _buildSectionHeader(context, 'Preferences'),
             _buildSettingsCard(
               context,
               icon: Icons.palette,
@@ -56,15 +56,23 @@ class SettingsPage extends StatelessWidget {
             _buildSettingsCard(
               context,
               icon: Icons.currency_exchange,
-              title: 'Currency & Units',
-              subtitle: 'Change display currency and units',
+              title: 'Currency',
+              subtitle: 'Change default display currency',
               onTap: () => Navigator.pushNamed(context, '/preferences-settings',
                   arguments: 'currency'),
+            ),
+            _buildSettingsCard(
+              context,
+              icon: Icons.timer,
+              title: 'Polling Interval',
+              subtitle: 'Set data refresh frequency (10s, 15s, 30s, 60s)',
+              onTap: () => Navigator.pushNamed(context, '/preferences-settings',
+                  arguments: 'polling'),
             ),
             const SizedBox(height: 24),
 
             // Legal & Support Section
-            _buildSectionHeader('Legal & Support'),
+            _buildSectionHeader(context, 'Legal & Support'),
             _buildSettingsCard(
               context,
               icon: Icons.description,
@@ -95,15 +103,15 @@ class SettingsPage extends StatelessWidget {
     );
   }
 
-  Widget _buildSectionHeader(String title) {
+  Widget _buildSectionHeader(BuildContext context, String title) {
     return Padding(
       padding: const EdgeInsets.fromLTRB(0, 16.0, 0, 12.0),
       child: Text(
         title,
-        style: const TextStyle(
+        style: TextStyle(
           fontSize: 16,
           fontWeight: FontWeight.bold,
-          color: Colors.white70,
+          color: Theme.of(context).colorScheme.primary,
         ),
       ),
     );
@@ -118,28 +126,27 @@ class SettingsPage extends StatelessWidget {
   }) {
     return Card(
       margin: const EdgeInsets.symmetric(vertical: 8.0),
-      color: Colors.grey[900],
       child: ListTile(
-        leading: Icon(icon, color: Colors.blue, size: 28),
+        leading: Icon(icon, color: Theme.of(context).colorScheme.primary, size: 28),
         title: Text(
           title,
-          style: const TextStyle(
+          style: TextStyle(
             fontSize: 16,
             fontWeight: FontWeight.w500,
-            color: Colors.white,
+            color: Theme.of(context).colorScheme.onSurface,
           ),
         ),
         subtitle: Text(
           subtitle,
           style: TextStyle(
             fontSize: 12,
-            color: Colors.grey[400],
+            color: Theme.of(context).colorScheme.onSurfaceVariant,
           ),
         ),
         trailing: Icon(
           Icons.arrow_forward_ios,
           size: 16,
-          color: Colors.grey[600],
+          color: Theme.of(context).colorScheme.onSurfaceVariant,
         ),
         onTap: onTap,
       ),

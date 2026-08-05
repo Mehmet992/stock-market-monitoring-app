@@ -121,6 +121,30 @@ class WatchlistService {
     }
   }
 
+  /// Update target price for an asset and persist to database
+  Future<void> updateTargetPrice(MarketAsset asset, double? targetPrice) async {
+    final updatedAsset = asset.copyWith(targetAlertPrice: targetPrice);
+    final index = _watchlist.indexWhere((a) => a.symbol == asset.symbol);
+    if (index != -1) {
+      _watchlist[index] = updatedAsset;
+    } else {
+      _watchlist.add(updatedAsset);
+    }
+    _watchlistController.add(List.from(_watchlist));
+    try {
+      await _databaseService.addToWatchlist(updatedAsset);
+      if (kDebugMode) {
+        debugPrint(
+            '[WatchlistService] Saved target price $targetPrice for ${asset.symbol}');
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        debugPrint(
+            '[WatchlistService] Error saving target price for ${asset.symbol}: $e');
+      }
+    }
+  }
+
   void dispose() {
     _watchlistController.close();
   }

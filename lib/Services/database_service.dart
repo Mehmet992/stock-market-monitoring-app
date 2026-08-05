@@ -4,6 +4,7 @@ import 'package:flutter/foundation.dart';
 import 'package:stock_market_monitoring_app/Enums/currency.dart';
 import 'package:stock_market_monitoring_app/Models/market_asset.dart';
 import 'package:stock_market_monitoring_app/Models/user_data_model.dart';
+import 'package:stock_market_monitoring_app/Services/currency_service.dart';
 
 import '../Enums/theme.dart';
 
@@ -11,33 +12,68 @@ class DatabaseService {
   final FirebaseFirestore _db = FirebaseFirestore.instance;
   final FirebaseAuth _auth = FirebaseAuth.instance;
 
-  /// Save user profile to database (called immediately on account creation)
+  /// Save or update user profile in database.
+  /// Initialized new user accounts with default fields, and performs partial updates for existing users.
   Future<void> saveUserProfile({
     Currency? currency,
     Theme? theme,
     double? pollingTime,
+    double? backgroundPollingTime,
   }) async {
-    final userId = _auth.currentUser?.uid;
-    if (userId == null) {
+    final user = _auth.currentUser;
+    if (user == null) {
       throw Exception("User not logged in!");
     }
 
-    final userData = UserDataModel(
-      uid: userId,
-      email: _auth.currentUser?.email,
-      isAnonymous: _auth.currentUser?.isAnonymous ?? true,
-      defaultCurrency: currency ?? Currency.usd,
-      theme: theme ?? Theme.system,
-      pollingTime: pollingTime ?? 10.0,
-    ).toFirestoreMap();
+    final docRef = _db.collection('users').doc(user.uid);
+    final docSnapshot = await docRef.get();
 
-    await _db
-        .collection('users')
-        .doc(userId)
-        .set(userData, SetOptions(merge: true));
+    if (!docSnapshot.exists) {
+      // First time initialization for new user account
+      final userData = UserDataModel(
+        uid: user.uid,
+        email: user.email,
+        isAnonymous: user.isAnonymous,
+        defaultCurrency: currency ?? Currency.usd,
+        theme: theme ?? Theme.system,
+        pollingTime: pollingTime ?? 10.0,
+        backgroundPollingTime: backgroundPollingTime ?? 3600.0,
+      ).toFirestoreMap();
+
+      await docRef.set(userData, SetOptions(merge: true));
+      CurrencyService().defaultCurrency = currency ?? Currency.usd;
+
+      if (kDebugMode) {
+        debugPrint(
+            '[DatabaseService] Initialized new user profile for UID: ${user.uid}');
+      }
+      return;
+    }
+
+    // Existing user: update only non-null passed parameters
+    final Map<String, dynamic> updateData = {};
+
+    if (currency != null) {
+      updateData['defaultCurrency'] = currency.code;
+      CurrencyService().defaultCurrency = currency;
+    }
+    if (theme != null) {
+      updateData['theme'] = theme.code;
+    }
+    if (pollingTime != null) {
+      updateData['pollingTime'] = pollingTime;
+    }
+    if (backgroundPollingTime != null) {
+      updateData['backgroundPollingTime'] = backgroundPollingTime;
+    }
+
+    if (updateData.isNotEmpty) {
+      await docRef.set(updateData, SetOptions(merge: true));
+    }
 
     if (kDebugMode) {
-      debugPrint('[DatabaseService] User profile saved for UID: $userId');
+      debugPrint(
+          '[DatabaseService] User profile updated for UID: ${user.uid} ($updateData)');
     }
   }
 
@@ -51,10 +87,13 @@ class DatabaseService {
     try {
       final doc = await _db.collection('users').doc(userId).get();
       if (doc.exists) {
+        final profile = UserDataModel.fromFirestore(doc);
+        CurrencyService().defaultCurrency = profile.defaultCurrency;
         if (kDebugMode) {
-          debugPrint('[DatabaseService] User profile loaded for UID: $userId');
+          debugPrint(
+              '[DatabaseService] User profile loaded for UID: $userId (currency: ${profile.defaultCurrency.code})');
         }
-        return UserDataModel.fromFirestore(doc);
+        return profile;
       }
       return null;
     } catch (e) {
@@ -74,7 +113,9 @@ class DatabaseService {
 
     return _db.collection('users').doc(userId).snapshots().map((doc) {
       if (doc.exists) {
-        return UserDataModel.fromFirestore(doc);
+        final profile = UserDataModel.fromFirestore(doc);
+        CurrencyService().defaultCurrency = profile.defaultCurrency;
+        return profile;
       }
       return null;
     });

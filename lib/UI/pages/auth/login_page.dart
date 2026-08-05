@@ -91,6 +91,34 @@ class _LoginPageState extends State<LoginPage> {
     }
   }
 
+  Future<void> _handleForgotPassword() async {
+    final email = _emailController.text.trim();
+    if (email.isEmpty) {
+      setState(() {
+        _errorMessage = 'Please enter your email address to reset password.';
+      });
+      return;
+    }
+
+    try {
+      await _authService.sendPasswordResetEmail(email);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Password reset email sent to $email'),
+            backgroundColor: Colors.green,
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _errorMessage = e.toString();
+        });
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -164,24 +192,36 @@ class _LoginPageState extends State<LoginPage> {
               ),
             ),
             const SizedBox(height: 16),
-            // Show Password Checkbox
+            // Show Password Checkbox & Forgot Password
             Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Checkbox(
-                  value: _showPassword,
-                  onChanged: (value) {
-                    setState(() {
-                      _showPassword = value ?? false;
-                    });
-                  },
-                  activeColor: Colors.blue,
-                  checkColor: Colors.white,
+                Row(
+                  children: [
+                    Checkbox(
+                      value: _showPassword,
+                      onChanged: (value) {
+                        setState(() {
+                          _showPassword = value ?? false;
+                        });
+                      },
+                      activeColor: Colors.blue,
+                      checkColor: Colors.white,
+                    ),
+                    Text(
+                      'Show password',
+                      style: Theme.of(
+                        context,
+                      ).textTheme.bodyMedium?.copyWith(color: Colors.grey[300]),
+                    ),
+                  ],
                 ),
-                Text(
-                  'Show password',
-                  style: Theme.of(
-                    context,
-                  ).textTheme.bodyMedium?.copyWith(color: Colors.grey[300]),
+                TextButton(
+                  onPressed: _handleForgotPassword,
+                  child: const Text(
+                    'Forgot?',
+                    style: TextStyle(color: Colors.blue, fontWeight: FontWeight.w600),
+                  ),
                 ),
               ],
             ),

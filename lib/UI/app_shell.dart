@@ -1,12 +1,12 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:stock_market_monitoring_app/Services/database_service.dart';
 import 'package:stock_market_monitoring_app/Services/generic_market_service.dart';
 import 'package:stock_market_monitoring_app/Services/watchlist_service.dart';
 import 'package:stock_market_monitoring_app/UI/pages/settings_page.dart';
 import 'pages/assets_menu.dart';
 import 'pages/dashboard_page.dart';
 import 'pages/watchlist_page.dart';
-
 
 class AppShell extends StatefulWidget {
   const AppShell({super.key});
@@ -35,14 +35,17 @@ class _AppShellState extends State<AppShell> with WidgetsBindingObserver {
   /// Initialize app data from database
   Future<void> _initializeAppData() async {
     await _watchlistService.initializeWatchlist();
-    _marketService.startPolling(interval: const Duration(seconds: 10));
+    final profile = await DatabaseService().getUserProfile();
+    final pollingSecs = profile?.pollingTime.toInt() ?? 15;
+    _marketService.startPolling(interval: Duration(seconds: pollingSecs));
 
     if (mounted) {
       setState(() {
         _isInitialized = true;
       });
       if (kDebugMode) {
-        debugPrint('[AppShell] App data initialized and service polling started');
+        debugPrint(
+            '[AppShell] App data initialized and service polling started with ${pollingSecs}s interval');
       }
     }
   }
@@ -68,12 +71,11 @@ class _AppShellState extends State<AppShell> with WidgetsBindingObserver {
       return Scaffold(
         appBar: AppBar(
           title: const Text('Stock Market Monitor'),
-          backgroundColor: Colors.blueGrey[900],
           elevation: 0,
         ),
         body: Center(
           child: CircularProgressIndicator(
-            valueColor: AlwaysStoppedAnimation<Color>(Colors.blue[400]!),
+            valueColor: AlwaysStoppedAnimation<Color>(Theme.of(context).colorScheme.primary),
           ),
         ),
       );
@@ -82,7 +84,6 @@ class _AppShellState extends State<AppShell> with WidgetsBindingObserver {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Stock Market Monitor'),
-        backgroundColor: Colors.blueGrey[900],
         elevation: 0,
       ),
       body: _buildPage(_selectedIndex),
@@ -96,9 +97,8 @@ class _AppShellState extends State<AppShell> with WidgetsBindingObserver {
             _selectedIndex = index;
           });
         },
-        backgroundColor: Colors.blueGrey[900],
-        selectedItemColor: Colors.green[400],
-        unselectedItemColor: Colors.grey[400],
+        selectedItemColor: Theme.of(context).colorScheme.primary,
+        unselectedItemColor: Theme.of(context).colorScheme.onSurfaceVariant,
         items: const [
           BottomNavigationBarItem(
               icon: Icon(Icons.home),

@@ -21,19 +21,58 @@ class MarketAsset {
     this.targetAlertPrice,
   });
 
+  MarketAsset copyWith({
+    double? regularPrice,
+    double? previousClose,
+    String? currency,
+    String? symbol,
+    String? displayName,
+    AssetType? type,
+    DateTime? addedAt,
+    double? targetAlertPrice,
+  }) {
+    return MarketAsset(
+      regularPrice: regularPrice ?? this.regularPrice,
+      previousClose: previousClose ?? this.previousClose,
+      currency: currency ?? this.currency,
+      symbol: symbol ?? this.symbol,
+      displayName: displayName ?? this.displayName,
+      type: type ?? this.type,
+      addedAt: addedAt ?? this.addedAt,
+      targetAlertPrice: targetAlertPrice ?? this.targetAlertPrice,
+    );
+  }
+
 
 
   factory MarketAsset.fromJson(
       Map<String, dynamic> json, {
         required MarketAssetConfig config,
       }) {
+    // 1. Single Chart API response format (v8/finance/chart)
+    if (json.containsKey('chart') && json['chart'] != null) {
+      final meta = json['chart']['result'][0]['meta'];
+      return MarketAsset(
+        regularPrice: (meta['regularMarketPrice'] as num?)?.toDouble() ?? 0.0,
+        previousClose: (meta['chartPreviousClose'] as num?)?.toDouble() ?? 0.0,
+        currency: meta['currency'] ?? 'UNKNOWN',
+        symbol: meta['symbol'] ?? config.symbol,
+        displayName: config.displayName,
+        type: config.type,
+      );
+    }
 
-    final meta = json['chart']['result'][0]['meta'];
+    // 2. Batch Quote API response format (v7/finance/quote)
+    final double price = (json['regularMarketPrice'] as num?)?.toDouble() ?? 0.0;
+    final double prevClose = (json['regularMarketPreviousClose'] as num?)?.toDouble()
+        ?? (json['chartPreviousClose'] as num?)?.toDouble()
+        ?? 0.0;
+
     return MarketAsset(
-      regularPrice: (meta['regularMarketPrice'] as num).toDouble(),
-      previousClose: (meta['chartPreviousClose'] as num).toDouble(),
-      currency: meta['currency'] ?? 'UNKNOWN',
-      symbol: meta['symbol'] ?? config.symbol,
+      regularPrice: price,
+      previousClose: prevClose,
+      currency: json['currency'] ?? 'UNKNOWN',
+      symbol: json['symbol'] ?? config.symbol,
       displayName: config.displayName,
       type: config.type,
     );

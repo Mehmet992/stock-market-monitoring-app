@@ -1,30 +1,36 @@
-// This is a basic Flutter widget test.
-//
-// To perform an interaction with a widget in your test, use the WidgetTester
-// utility in the flutter_test package. For example, you can send tap and scroll
-// gestures. You can also use WidgetTester to find child widgets in the widget
-// tree, read text, and verify that the values of widget properties are correct.
-
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-
-import 'package:stock_market_monitoring_app/main.dart';
+import 'package:stock_market_monitoring_app/Enums/asset_types.dart';
+import 'package:stock_market_monitoring_app/Models/market_asset.dart';
+import 'package:stock_market_monitoring_app/UI/components/asset_card.dart';
 
 void main() {
-  testWidgets('Counter increments smoke test', (WidgetTester tester) async {
-    // Build our app and trigger a frame.
-    await tester.pumpWidget(const MyApp());
+  testWidgets('AssetCard renders asset details correctly',
+      (WidgetTester tester) async {
+    final testAsset = MarketAsset(
+      regularPrice: 2500.0,
+      previousClose: 2450.0,
+      currency: 'USD',
+      symbol: 'GC=F',
+      displayName: 'Gold (Ounce)',
+      type: AssetType.metal,
+    );
 
-    // Verify that our counter starts at 0.
-    expect(find.text('0'), findsOneWidget);
-    expect(find.text('1'), findsNothing);
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: AssetCard(
+            asset: testAsset,
+            isWatched: false,
+            onWatchlistToggle: () {},
+            onTap: () {},
+          ),
+        ),
+      ),
+    );
 
-    // Tap the '+' icon and trigger a frame.
-    await tester.tap(find.byIcon(Icons.add));
-    await tester.pump();
-
-    // Verify that our counter has incremented.
-    expect(find.text('0'), findsNothing);
-    expect(find.text('1'), findsOneWidget);
+    expect(find.text('Gold (Ounce)'), findsOneWidget);
+    expect(find.text('GC=F'), findsOneWidget);
+    expect(find.text('2500.00 \$'), findsOneWidget);
   });
 }

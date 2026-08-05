@@ -29,9 +29,9 @@ class AssetsMenu extends StatelessWidget {
               Tab(text: 'Crypto'),
               Tab(text: 'Stocks'),
             ],
-            labelColor: Colors.green[400],
-            unselectedLabelColor: Colors.grey[400],
-            indicatorColor: Colors.green[400],
+            labelColor: Theme.of(context).colorScheme.primary,
+            unselectedLabelColor: Theme.of(context).colorScheme.onSurfaceVariant,
+            indicatorColor: Theme.of(context).colorScheme.primary,
           ),
           Expanded(
             child: TabBarView(

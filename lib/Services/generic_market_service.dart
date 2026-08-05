@@ -6,6 +6,10 @@ import 'package:stock_market_monitoring_app/main_api.dart';
 
 //Pulling all the specified information from the API service
 class GenericMarketService {
+  static final GenericMarketService _instance = GenericMarketService._internal();
+  factory GenericMarketService() => _instance;
+  GenericMarketService._internal();
+
   //Creating the Stream controller and broadcasting the stream
   final StreamController<List<MarketAsset>> _marketDataController = StreamController<List<MarketAsset>>.broadcast();
   Timer? _timer;
@@ -20,7 +24,7 @@ class GenericMarketService {
     yield* _marketDataController.stream;
   }
 
-  void startPolling({Duration interval = const Duration(seconds: 10)}) {
+  void startPolling({Duration interval = const Duration(seconds: 15)}) {
     //Avoiding multiple timers
     stopPolling();
 

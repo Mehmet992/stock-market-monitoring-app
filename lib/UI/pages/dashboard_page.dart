@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:stock_market_monitoring_app/Services/currency_service.dart';
 import 'package:stock_market_monitoring_app/Services/generic_market_service.dart';
 import 'package:stock_market_monitoring_app/Services/watchlist_service.dart';
 import 'package:stock_market_monitoring_app/Models/market_asset.dart';
@@ -43,7 +44,8 @@ class DashboardPage extends StatelessWidget {
             );
           }
 
-          final assets = snapshot.data!;
+          final rawAssets = snapshot.data!;
+          final assets = CurrencyService().convertAssets(rawAssets);
 
           return SingleChildScrollView(
             child: Column(
@@ -57,7 +59,7 @@ class DashboardPage extends StatelessWidget {
                       Text(
                         'Market Overview',
                         style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                          color: Colors.white,
+                          color: Theme.of(context).colorScheme.onSurface,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
@@ -66,7 +68,7 @@ class DashboardPage extends StatelessWidget {
                         'Last updated: ${DateTime.now().toLocal()}',
                         style: TextStyle(
                           fontSize: 12,
-                          color: Colors.grey[500],
+                          color: Theme.of(context).colorScheme.onSurfaceVariant,
                         ),
                       ),
                     ],
@@ -80,7 +82,7 @@ class DashboardPage extends StatelessWidget {
                       style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
-                        color: Colors.green[400],
+                        color: Theme.of(context).colorScheme.primary,
                       ),
                     ),
                   ),
@@ -91,10 +93,10 @@ class DashboardPage extends StatelessWidget {
                   padding: const EdgeInsets.symmetric(horizontal: 16),
                   child: Text(
                     'All Assets',
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.bold,
-                      color: Colors.white,
+                      color: Theme.of(context).colorScheme.onSurface,
                     ),
                   ),
                 ),
@@ -126,6 +128,7 @@ class DashboardPage extends StatelessWidget {
               builder: (context) => AssetDetailPage(
                 asset: asset,
                 watchlistService: watchlistService,
+                marketService: marketService,
               ),
             ),
           );
@@ -150,6 +153,7 @@ class DashboardPage extends StatelessWidget {
               builder: (context) => AssetDetailPage(
                 asset: asset,
                 watchlistService: watchlistService,
+                marketService: marketService,
               ),
             ),
           );

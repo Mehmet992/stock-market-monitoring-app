@@ -152,13 +152,45 @@ class AuthService {
     }
   }
 
+  Future<void> changePassword({
+    required String currentPassword,
+    required String newPassword,
+  }) async {
+    try {
+      final user = _firebaseAuth.currentUser;
+      if (user == null) {
+        throw 'No user is currently signed in.';
+      }
+      if (user.email == null || user.email!.isEmpty) {
+        throw 'User does not have an email address associated with this account.';
+      }
+
+      // 1. Re-authenticate user with current password
+      final credential = EmailAuthProvider.credential(
+        email: user.email!,
+        password: currentPassword,
+      );
+      await user.reauthenticateWithCredential(credential);
+
+      // 2. Update to new password
+      await user.updatePassword(newPassword);
+
+      if (kDebugMode) {
+        debugPrint(
+            '[AuthService] Password successfully updated for: ${user.email}');
+      }
+    } on FirebaseAuthException catch (e) {
+      throw _handleAuthException(e);
+    }
+  }
+
   String _handleAuthException(FirebaseAuthException e) {
     if (kDebugMode) {
       debugPrint('[AuthService] Auth error (${e.code}): ${e.message}');
     }
     switch (e.code) {
       case 'weak-password':
-        return 'The password provided is too weak.';
+        return 'The password provided is too weak. Please use a stronger password.';
       case 'email-already-in-use':
         return 'An account already exists for that email.';
       case 'invalid-email':
@@ -170,9 +202,11 @@ class AuthService {
       case 'user-not-found':
         return 'No user found for that email.';
       case 'wrong-password':
-        return 'Wrong password provided for that user.';
+        return 'The current password you entered is incorrect.';
       case 'invalid-credential':
-        return 'Invalid email or password.';
+        return 'Invalid email or password credentials.';
+      case 'requires-recent-login':
+        return 'This operation is sensitive and requires recent authentication. Please log out and log in again before changing your password.';
       default:
         return 'An error occurred: ${e.message}';
     }

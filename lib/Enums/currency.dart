@@ -7,7 +7,8 @@ enum Currency {
   cad(symbol: 'CA\$', code: 'CAD', name: 'Canadian Dollar'),
   aud(symbol: 'A\$', code: 'AUD', name: 'Australian Dollar'),
   chf(symbol: 'CHF', code: 'CHF', name: 'Swiss Franc'),
-  cny(symbol: '¥', code: 'CNY', name: 'Chinese Yuan');
+  cny(symbol: '¥', code: 'CNY', name: 'Chinese Yuan'),
+  inr(symbol: '₹', code: 'INR', name: 'Indian Rupee');
 
   final String symbol;
   final String code;

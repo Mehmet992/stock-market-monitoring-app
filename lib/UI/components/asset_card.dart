@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:stock_market_monitoring_app/Enums/currency.dart';
 import 'package:stock_market_monitoring_app/Models/market_asset.dart';
 
 class AssetCard extends StatelessWidget {
@@ -8,16 +9,21 @@ class AssetCard extends StatelessWidget {
   final VoidCallback onTap;
 
   const AssetCard({
-    Key? key,
+    super.key,
     required this.asset,
     required this.isWatched,
     required this.onWatchlistToggle,
     required this.onTap,
-  }) : super(key: key);
+  });
 
   double get priceChange => asset.regularPrice - asset.previousClose;
   double get changePercent => (priceChange / asset.previousClose) * 100;
   bool get isPositive => priceChange >= 0;
+
+  String get formattedPrice {
+    final currencyObj = Currency.fromCode(asset.currency);
+    return '${asset.regularPrice.toStringAsFixed(2)} ${currencyObj.symbol}';
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -25,7 +31,6 @@ class AssetCard extends StatelessWidget {
       onTap: onTap,
       child: Card(
         margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-        color: Colors.grey[900],
         child: Padding(
           padding: const EdgeInsets.all(16),
           child: Row(
@@ -36,10 +41,10 @@ class AssetCard extends StatelessWidget {
                   children: [
                     Text(
                       asset.displayName,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
-                        color: Colors.white,
+                        color: Theme.of(context).colorScheme.onSurface,
                       ),
                     ),
                     const SizedBox(height: 4),
@@ -47,7 +52,7 @@ class AssetCard extends StatelessWidget {
                       asset.symbol,
                       style: TextStyle(
                         fontSize: 12,
-                        color: Colors.grey[500],
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
                         fontFamily: 'monospace',
                       ),
                     ),
@@ -58,11 +63,11 @@ class AssetCard extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
                   Text(
-                    '${asset.regularPrice.toStringAsFixed(2)} ${asset.currency}',
-                    style: const TextStyle(
+                    formattedPrice,
+                    style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.bold,
-                      color: Colors.white,
+                      color: Theme.of(context).colorScheme.onSurface,
                       fontFamily: 'monospace',
                     ),
                   ),

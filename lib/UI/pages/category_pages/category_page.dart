@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:stock_market_monitoring_app/Services/currency_service.dart';
 import 'package:stock_market_monitoring_app/Services/generic_market_service.dart';
 import 'package:stock_market_monitoring_app/Services/watchlist_service.dart';
 import 'package:stock_market_monitoring_app/Models/market_asset.dart';
@@ -63,7 +64,8 @@ class _CategoryPageState extends State<CategoryPage> {
             }
 
             final allAssets = snapshot.data!;
-            final categoryAssets = allAssets
+            final convertedAssets = CurrencyService().convertAssets(allAssets);
+            final categoryAssets = convertedAssets
                 .where((asset) => asset.type == widget.assetType)
                 .toList();
 
@@ -95,14 +97,14 @@ class _CategoryPageState extends State<CategoryPage> {
                         _searchQuery = value;
                       });
                     },
-                    style: const TextStyle(color: Colors.white),
+                    style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
                     decoration: InputDecoration(
                       hintText: 'Search ${widget.categoryName}...',
-                      hintStyle: TextStyle(color: Colors.grey[600]),
-                      prefixIcon: const Icon(Icons.search, color: Colors.grey),
+                      hintStyle: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant),
+                      prefixIcon: Icon(Icons.search, color: Theme.of(context).colorScheme.onSurfaceVariant),
                       suffixIcon: _searchQuery.isNotEmpty
                           ? IconButton(
-                              icon: const Icon(Icons.clear, color: Colors.grey),
+                              icon: Icon(Icons.clear, color: Theme.of(context).colorScheme.onSurfaceVariant),
                               onPressed: () {
                                 _searchController.clear();
                                 setState(() {
@@ -112,18 +114,18 @@ class _CategoryPageState extends State<CategoryPage> {
                             )
                           : null,
                       filled: true,
-                      fillColor: Colors.grey[900],
+                      fillColor: Theme.of(context).cardColor,
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(8),
-                        borderSide: BorderSide(color: Colors.grey[700]!),
+                        borderSide: BorderSide(color: Theme.of(context).dividerColor),
                       ),
                       enabledBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(8),
-                        borderSide: BorderSide(color: Colors.grey[700]!),
+                        borderSide: BorderSide(color: Theme.of(context).dividerColor),
                       ),
                       focusedBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(8),
-                        borderSide: BorderSide(color: Colors.green[400]!),
+                        borderSide: BorderSide(color: Theme.of(context).colorScheme.primary),
                       ),
                     ),
                   ),
@@ -152,6 +154,7 @@ class _CategoryPageState extends State<CategoryPage> {
                                       builder: (context) => AssetDetailPage(
                                         asset: asset,
                                         watchlistService: widget.watchlistService,
+                                        marketService: widget.marketService,
                                       ),
                                     ),
                                   );
