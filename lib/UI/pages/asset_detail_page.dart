@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:stock_market_monitoring_app/Models/market_asset.dart';
 import 'package:stock_market_monitoring_app/Services/currency_service.dart';
 import 'package:stock_market_monitoring_app/Services/generic_market_service.dart';
@@ -53,6 +54,9 @@ class AssetDetailPage extends StatelessWidget {
                     controller: controller,
                     autofocus: true,
                     keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                    inputFormatters: [
+                      FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*')),
+                    ],
                     style: const TextStyle(color: Colors.white),
                     decoration: InputDecoration(
                       labelText: 'Target Price (${displayAsset.currency})',
@@ -90,6 +94,7 @@ class AssetDetailPage extends StatelessWidget {
                   onPressed: () async {
                     final text = controller.text.trim();
                     if (text.isEmpty) {
+                      //The reason of passing a null value is clearing the target price when the text is empty
                       await watchlistService.updateTargetPrice(displayAsset, null);
                       if (context.mounted) {
                         Navigator.pop(dialogContext);

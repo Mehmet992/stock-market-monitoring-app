@@ -144,6 +144,7 @@ Future<void> scheduleBackgroundWorker(double? backgroundPollingTimeInSeconds) as
     isInDebugMode: false,
   );
 
+  //Registering a periodic task for notification (checks for every interval which is specified by the user)
   await Workmanager().registerPeriodicTask(
     backgroundTaskUniqueName,
     backgroundTaskTag,

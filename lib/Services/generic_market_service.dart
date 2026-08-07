@@ -35,8 +35,9 @@ class GenericMarketService {
 
     _fetchAndBroadcast();
 
+    //(_) is passed to .periodic() method because the timer is not used in the block
     _timer = Timer.periodic(interval, (_) {
-      _fetchAndBroadcast();
+      _fetchAndBroadcast(); //Timer doesn't used here
     });
   }
 

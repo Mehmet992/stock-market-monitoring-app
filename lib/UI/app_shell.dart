@@ -24,7 +24,7 @@ class _AppShellState extends State<AppShell> with WidgetsBindingObserver {
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addObserver(this);
+    WidgetsBinding.instance.addObserver(this); //Listens to OS actions, app lifecycle state and system changes.
     _marketService = GenericMarketService();
     _watchlistService = WatchlistService();
 
