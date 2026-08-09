@@ -62,16 +62,19 @@ class MarketAsset {
       );
     }
 
-    // 2. Batch Quote API response format (v7/finance/quote)
-    final double price = (json['regularMarketPrice'] as num?)?.toDouble() ?? 0.0;
-    final double prevClose = (json['regularMarketPreviousClose'] as num?)?.toDouble()
+    // 2. Batch Quote API & Node Backend response format
+    final double price = (json['price'] as num?)?.toDouble()
+        ?? (json['regularMarketPrice'] as num?)?.toDouble()
+        ?? 0.0;
+    final double prevClose = (json['previousClose'] as num?)?.toDouble()
+        ?? (json['regularMarketPreviousClose'] as num?)?.toDouble()
         ?? (json['chartPreviousClose'] as num?)?.toDouble()
         ?? 0.0;
 
     return MarketAsset(
       regularPrice: price,
       previousClose: prevClose,
-      currency: json['currency'] ?? 'UNKNOWN',
+      currency: json['currency'] ?? 'USD',
       symbol: json['symbol'] ?? config.symbol,
       displayName: config.displayName,
       type: config.type,
