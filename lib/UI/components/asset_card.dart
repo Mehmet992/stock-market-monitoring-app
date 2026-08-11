@@ -17,7 +17,8 @@ class AssetCard extends StatelessWidget {
   });
 
   double get priceChange => asset.regularPrice - asset.previousClose;
-  double get changePercent => (priceChange / asset.previousClose) * 100;
+  double get changePercent =>
+      asset.previousClose > 0 ? (priceChange / asset.previousClose) * 100 : 0.0;
   bool get isPositive => priceChange >= 0;
 
   String get formattedPrice {

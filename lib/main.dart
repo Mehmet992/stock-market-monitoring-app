@@ -5,7 +5,6 @@ import 'package:stock_market_monitoring_app/Enums/theme.dart' as app_theme;
 import 'package:stock_market_monitoring_app/Models/user_data_model.dart';
 import 'package:stock_market_monitoring_app/Services/background_service.dart';
 import 'package:stock_market_monitoring_app/Services/database_service.dart';
-import 'package:stock_market_monitoring_app/Services/notification_service.dart';
 import 'package:stock_market_monitoring_app/UI/app_shell.dart';
 import 'package:stock_market_monitoring_app/UI/pages/auth/login_page.dart';
 import 'package:stock_market_monitoring_app/UI/pages/auth/signup_page.dart';
