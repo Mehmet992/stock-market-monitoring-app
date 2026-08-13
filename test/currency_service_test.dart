@@ -51,6 +51,77 @@ void main() {
       expect(converted.displayName, 'Bitcoin');
     });
 
+    test('Converts TRY asset (THYAO.IS) to USD correctly', () {
+      currencyService.updateRatesFromMarketAssets([
+        MarketAsset(
+          regularPrice: 40.0,
+          previousClose: 40.0,
+          currency: 'TRY',
+          symbol: 'USDTRY=X',
+          displayName: 'USD / TRY',
+          type: AssetType.forex,
+        )
+      ]);
+
+      final tryAsset = MarketAsset(
+        regularPrice: 300.0,
+        previousClose: 290.0,
+        currency: 'TRY',
+        symbol: 'THYAO.IS',
+        displayName: 'Türk Hava Yolları',
+        type: AssetType.stock,
+      );
+
+      final convertedUsd = currencyService.convertAsset(tryAsset, Currency.usd);
+      expect(convertedUsd.regularPrice, 7.5); // 300 / 40.0 = 7.5
+      expect(convertedUsd.previousClose, 7.25); // 290 / 40.0 = 7.25
+      expect(convertedUsd.currency, 'USD');
+    });
+
+    test('Converts TRY asset (THYAO.IS) to EUR correctly', () {
+      currencyService.updateRatesFromMarketAssets([
+        MarketAsset(
+          regularPrice: 40.0,
+          previousClose: 40.0,
+          currency: 'TRY',
+          symbol: 'USDTRY=X',
+          displayName: 'USD / TRY',
+          type: AssetType.forex,
+        ),
+        MarketAsset(
+          regularPrice: 1.25, // 1 EUR = 1.25 USD -> EUR rate = 0.8
+          previousClose: 1.25,
+          currency: 'USD',
+          symbol: 'EURUSD=X',
+          displayName: 'EUR / USD',
+          type: AssetType.forex,
+        ),
+      ]);
+
+      final tryAsset = MarketAsset(
+        regularPrice: 300.0,
+        previousClose: 290.0,
+        currency: 'TRY',
+        symbol: 'THYAO.IS',
+        displayName: 'Türk Hava Yolları',
+        type: AssetType.stock,
+      );
+
+      final convertedEur = currencyService.convertAsset(tryAsset, Currency.eur);
+      // 300 TRY in USD = 7.5 USD. 7.5 USD in EUR = 7.5 * 0.8 = 6.0 EUR
+      expect(convertedEur.regularPrice, 6.0);
+      expect(convertedEur.currency, 'EUR');
+    });
+
+    test('Normalizes currency codes and symbol suffixes', () {
+      expect(currencyService.normalizeCurrencyCode('TL'), 'TRY');
+      expect(currencyService.normalizeCurrencyCode('₺'), 'TRY');
+      expect(currencyService.normalizeCurrencyCode('€'), 'EUR');
+      expect(currencyService.normalizeCurrencyCode(null, symbol: 'THYAO.IS'), 'TRY');
+      expect(currencyService.normalizeCurrencyCode(null, symbol: 'AIR.PA'), 'EUR');
+      expect(currencyService.normalizeCurrencyCode(null, symbol: 'BARC.L'), 'GBP');
+    });
+
     test('Converts EUR/USD forex pair to EUR/TRY when display is TRY', () {
       final eurUsdAsset = MarketAsset(
         regularPrice: 1.15,
@@ -98,5 +169,30 @@ void main() {
       final formatted = currencyService.formatPrice(123.45, Currency.tryLira);
       expect(formatted, '123.45 ₺');
     });
+
+    test('MarketAsset.copyWith clears targetAlertPrice when explicitly set to null', () {
+      final asset = MarketAsset(
+        regularPrice: 100.0,
+        previousClose: 95.0,
+        currency: 'USD',
+        symbol: 'AAPL',
+        displayName: 'Apple',
+        type: AssetType.stock,
+        targetAlertPrice: 150.0,
+      );
+
+      expect(asset.targetAlertPrice, 150.0);
+
+      // copyWith without targetAlertPrice retains existing value
+      final copiedSame = asset.copyWith(regularPrice: 105.0);
+      expect(copiedSame.regularPrice, 105.0);
+      expect(copiedSame.targetAlertPrice, 150.0);
+
+      // copyWith with explicit null clears targetAlertPrice
+      final copiedCleared = asset.copyWith(targetAlertPrice: null);
+      expect(copiedCleared.targetAlertPrice, null);
+    });
   });
 }
+
+

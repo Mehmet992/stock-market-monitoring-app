@@ -1,11 +1,13 @@
 import 'package:stock_market_monitoring_app/ConfigClasses/market_asset_config.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:stock_market_monitoring_app/Services/currency_service.dart';
 import '../Enums/asset_types.dart';
 
 class MarketAsset {
   final double regularPrice, previousClose;
   final String currency, symbol, displayName;
   final AssetType type;
+  final String? source;
 
   final DateTime? addedAt;
   final double? targetAlertPrice;
@@ -17,9 +19,12 @@ class MarketAsset {
     required this.symbol,
     required this.displayName,
     required this.type,
+    this.source,
     this.addedAt,
     this.targetAlertPrice,
   });
+
+  static const Object _sentinel = Object();
 
   MarketAsset copyWith({
     double? regularPrice,
@@ -28,8 +33,9 @@ class MarketAsset {
     String? symbol,
     String? displayName,
     AssetType? type,
+    String? source,
     DateTime? addedAt,
-    double? targetAlertPrice,
+    Object? targetAlertPrice = _sentinel,
   }) {
     return MarketAsset(
       regularPrice: regularPrice ?? this.regularPrice,
@@ -38,8 +44,11 @@ class MarketAsset {
       symbol: symbol ?? this.symbol,
       displayName: displayName ?? this.displayName,
       type: type ?? this.type,
+      source: source ?? this.source,
       addedAt: addedAt ?? this.addedAt,
-      targetAlertPrice: targetAlertPrice ?? this.targetAlertPrice,
+      targetAlertPrice: targetAlertPrice == _sentinel
+          ? this.targetAlertPrice
+          : targetAlertPrice as double?,
     );
   }
 
@@ -52,13 +61,16 @@ class MarketAsset {
     // 1. Single Chart API response format (v8/finance/chart)
     if (json.containsKey('chart') && json['chart'] != null) {
       final meta = json['chart']['result'][0]['meta'];
+      final symbol = meta['symbol'] ?? config.symbol;
+      final rawCurrency = meta['currency'] as String?;
       return MarketAsset(
         regularPrice: (meta['regularMarketPrice'] as num?)?.toDouble() ?? 0.0,
         previousClose: (meta['chartPreviousClose'] as num?)?.toDouble() ?? 0.0,
-        currency: meta['currency'] ?? 'UNKNOWN',
-        symbol: meta['symbol'] ?? config.symbol,
+        currency: CurrencyService().normalizeCurrencyCode(rawCurrency, symbol: symbol),
+        symbol: symbol,
         displayName: config.displayName,
         type: config.type,
+        source: 'YAHOO',
       );
     }
 
@@ -70,14 +82,17 @@ class MarketAsset {
         ?? (json['regularMarketPreviousClose'] as num?)?.toDouble()
         ?? (json['chartPreviousClose'] as num?)?.toDouble()
         ?? 0.0;
+    final symbol = json['symbol'] ?? config.symbol;
+    final rawCurrency = json['currency'] as String?;
 
     return MarketAsset(
       regularPrice: price,
       previousClose: prevClose,
-      currency: json['currency'] ?? 'USD',
-      symbol: json['symbol'] ?? config.symbol,
+      currency: CurrencyService().normalizeCurrencyCode(rawCurrency, symbol: symbol),
+      symbol: symbol,
       displayName: config.displayName,
       type: config.type,
+      source: json['source'] as String?,
     );
   }
 
@@ -86,7 +101,7 @@ class MarketAsset {
     return MarketAsset(
       regularPrice: 0.0, //Mock information until the real data fetched
       previousClose: 0.0,
-      currency: docData['currency'] ?? 'USD',
+      currency: CurrencyService().normalizeCurrencyCode(docData['currency'] as String?, symbol: docId),
       symbol: docId,
       displayName: docData['displayName'] ?? '',
       type: AssetType.values.firstWhere(

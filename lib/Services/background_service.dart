@@ -1,7 +1,9 @@
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/foundation.dart';
 import 'package:workmanager/workmanager.dart';
+import 'package:stock_market_monitoring_app/Enums/currency.dart';
 import 'package:stock_market_monitoring_app/Models/market_asset.dart';
+import 'package:stock_market_monitoring_app/Services/currency_service.dart';
 import 'package:stock_market_monitoring_app/Services/database_service.dart';
 import 'package:stock_market_monitoring_app/Services/notification_service.dart';
 import 'package:stock_market_monitoring_app/firebase_options.dart';
@@ -26,6 +28,8 @@ void callbackDispatcher() {
       // 2. Load user watchlist from Firestore
       final dbService = DatabaseService();
       final watchlist = await dbService.loadWatchlist();
+      final userProfile = await dbService.getUserProfile();
+      final displayCurrency = userProfile?.defaultCurrency ?? Currency.usd;
 
       // Skip API network calls and notification system if no assets have a target price set
       final targetAssets = watchlist
@@ -43,8 +47,10 @@ void callbackDispatcher() {
       // 3. Initialize NotificationService in background mode
       await NotificationService().initialize(isBackground: true);
 
-      // 3. Fetch latest live market prices
-      final List<MarketAsset> liveAssets = await fetchAllAssetsConcurrently();
+      // 3. Fetch latest live market prices and convert to user display currency
+      final List<MarketAsset> rawLiveAssets = await fetchAllAssetsConcurrently();
+      final List<MarketAsset> liveAssets =
+          CurrencyService().convertAssets(rawLiveAssets, displayCurrency);
 
       // 4. Compare regular price against targetAlertPrice for both UP and DOWN conditions
       for (final targetAsset in targetAssets) {
@@ -149,7 +155,7 @@ Future<void> scheduleBackgroundWorker(double? backgroundPollingTimeInSeconds) as
     backgroundTaskUniqueName,
     backgroundTaskTag,
     frequency: Duration(minutes: frequencyMinutes),
-    existingWorkPolicy: ExistingPeriodicWorkPolicy.replace,
+    existingWorkPolicy: ExistingPeriodicWorkPolicy.keep,
     constraints: Constraints(
       networkType: NetworkType.connected,
     ),
@@ -160,3 +166,17 @@ Future<void> scheduleBackgroundWorker(double? backgroundPollingTimeInSeconds) as
         '[BackgroundWorker] Scheduled periodic background task every $frequencyMinutes minutes.');
   }
 }
+
+/// Helper to sync background worker schedule for current user when watchlist or target prices change
+Future<void> syncBackgroundWorkerForCurrentUser() async {
+  try {
+    final userProfile = await DatabaseService().getUserProfile();
+    final backgroundPollingTime = userProfile?.backgroundPollingTime ?? 3600.0;
+    await scheduleBackgroundWorker(backgroundPollingTime);
+  } catch (e) {
+    if (kDebugMode) {
+      debugPrint('[BackgroundWorker] Error syncing background worker for user: $e');
+    }
+  }
+}
+

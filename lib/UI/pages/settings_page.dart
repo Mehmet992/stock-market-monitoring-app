@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:stock_market_monitoring_app/Models/market_asset.dart';
+import 'package:stock_market_monitoring_app/Services/generic_market_service.dart';
 
 class SettingsPage extends StatelessWidget {
   const SettingsPage({super.key});
@@ -51,7 +53,8 @@ class SettingsPage extends StatelessWidget {
               icon: Icons.palette,
               title: 'Theme',
               subtitle: 'Light / Dark mode',
-              onTap: () => Navigator.pushNamed(context, '/preferences-settings'),
+              onTap: () => Navigator.pushNamed(context, '/preferences-settings',
+                  arguments: 'theme'),
             ),
             _buildSettingsCard(
               context,
@@ -68,6 +71,14 @@ class SettingsPage extends StatelessWidget {
               subtitle: 'Set data refresh frequency (10s, 15s, 30s, 60s)',
               onTap: () => Navigator.pushNamed(context, '/preferences-settings',
                   arguments: 'polling'),
+            ),
+            _buildSettingsCard(
+              context,
+              icon: Icons.notifications_active,
+              title: 'Background Notifications',
+              subtitle: 'Configure background target price alert checks',
+              onTap: () => Navigator.pushNamed(context, '/preferences-settings',
+                  arguments: 'background_polling'),
             ),
             const SizedBox(height: 24),
 
@@ -96,7 +107,9 @@ class SettingsPage extends StatelessWidget {
               onTap: () => Navigator.pushNamed(context, '/legal-support',
                   arguments: 'version'),
             ),
-            const SizedBox(height: 32),
+
+            // Data Provider Status Indicator
+            _buildProviderStatusFooter(context),
           ],
         ),
       ),
@@ -152,4 +165,73 @@ class SettingsPage extends StatelessWidget {
       ),
     );
   }
+
+  Widget _buildProviderStatusFooter(BuildContext context) {
+    return StreamBuilder<List<MarketAsset>>(
+      stream: GenericMarketService().marketDataStream,
+      builder: (context, snapshot) {
+        final assets = snapshot.data ?? [];
+        final sources = assets
+            .map((a) => a.source)
+            .where((s) => s != null && s.isNotEmpty)
+            .cast<String>()
+            .toSet();
+
+        String providerText;
+        if (assets.isEmpty) {
+          providerText = 'Connecting to market data service...';
+        } else if (sources.isEmpty) {
+          providerText = 'Fetched from Central Backend API';
+        } else {
+          final formattedSources = sources.map((s) {
+            final upper = s.toUpperCase();
+            if (upper == 'YAHOO') return 'Yahoo Finance';
+            if (upper.contains('ALPACA')) return 'Alpaca Market';
+            if (upper == 'STALE_CACHE') return 'Stale Cache';
+            return s.replaceAll('_', ' ');
+          }).toSet().join(', ');
+
+          providerText = 'Fetched from $formattedSources';
+        }
+
+        return Container(
+          margin: const EdgeInsets.only(top: 16, bottom: 24),
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          decoration: BoxDecoration(
+            color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.08),
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(
+              color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.2),
+            ),
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Container(
+                width: 8,
+                height: 8,
+                decoration: const BoxDecoration(
+                  color: Colors.green,
+                  shape: BoxShape.circle,
+                ),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  providerText,
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w500,
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
 }
+

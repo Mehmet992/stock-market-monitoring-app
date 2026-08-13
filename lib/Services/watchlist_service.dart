@@ -2,6 +2,8 @@ import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:stock_market_monitoring_app/Enums/asset_types.dart';
 import 'package:stock_market_monitoring_app/Models/market_asset.dart';
+import 'package:stock_market_monitoring_app/Services/background_service.dart';
+import 'package:stock_market_monitoring_app/Services/currency_service.dart';
 import 'package:stock_market_monitoring_app/Services/database_service.dart';
 
 class WatchlistService {
@@ -65,7 +67,7 @@ class WatchlistService {
       final placeholder = MarketAsset(
         regularPrice: 0.0,
         previousClose: 0.0,
-        currency: 'USD',
+        currency: CurrencyService().normalizeCurrencyCode(null, symbol: symbol),
         symbol: symbol,
         displayName: symbol,
         type: AssetType.crypto,
@@ -89,6 +91,7 @@ class WatchlistService {
       }
       try {
         await _databaseService.removeFromWatchlist(symbol);
+        await syncBackgroundWorkerForCurrentUser();
       } catch (e) {
         if (kDebugMode) {
           debugPrint(
@@ -133,6 +136,7 @@ class WatchlistService {
     _watchlistController.add(List.from(_watchlist));
     try {
       await _databaseService.addToWatchlist(updatedAsset);
+      await syncBackgroundWorkerForCurrentUser();
       if (kDebugMode) {
         debugPrint(
             '[WatchlistService] Saved target price $targetPrice for ${asset.symbol}');
