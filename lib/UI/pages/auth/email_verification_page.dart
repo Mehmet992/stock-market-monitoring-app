@@ -88,6 +88,7 @@ class _EmailVerificationPageState extends State<EmailVerificationPage> {
       appBar: AppBar(
         elevation: 0,
         backgroundColor: Colors.transparent,
+        foregroundColor: Theme.of(context).colorScheme.onSurface,
         leading: null,
       ),
       body: SingleChildScrollView(

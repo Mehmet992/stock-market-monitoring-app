@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:stock_market_monitoring_app/Enums/asset_types.dart';
 import 'package:stock_market_monitoring_app/Models/market_asset.dart';
 import 'package:stock_market_monitoring_app/Services/generic_market_service.dart';
 
@@ -13,6 +14,7 @@ class SettingsPage extends StatelessWidget {
         centerTitle: true,
         elevation: 0,
         backgroundColor: Colors.transparent,
+        foregroundColor: Theme.of(context).colorScheme.onSurface,
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
@@ -178,30 +180,77 @@ class SettingsPage extends StatelessWidget {
             .toSet();
 
         String providerText;
+        Color statusColor = Colors.green;
+
         if (assets.isEmpty) {
           providerText = 'Connecting to market data service...';
-        } else if (sources.isEmpty) {
-          providerText = 'Fetched from Central Backend API';
+          statusColor = Colors.orange;
+        } else if (sources.contains('SERVER_ERROR') && sources.length == 1) {
+          providerText = 'Server-side Error: Failed to fetch market quotes';
+          statusColor = Colors.red;
         } else {
-          final formattedSources = sources.map((s) {
-            final upper = s.toUpperCase();
-            if (upper == 'YAHOO') return 'Yahoo Finance';
-            if (upper.contains('ALPACA')) return 'Alpaca Market';
-            if (upper == 'STALE_CACHE') return 'Stale Cache';
-            return s.replaceAll('_', ' ');
-          }).toSet().join(', ');
+          final usCryptoSources = assets
+              .where((a) => a.type == AssetType.crypto || (a.type == AssetType.stock && !a.symbol.endsWith('.IS')))
+              .map((a) => a.source)
+              .where((s) => s != null && s.isNotEmpty)
+              .cast<String>()
+              .toSet();
 
-          providerText = 'Fetched from $formattedSources';
+          final bistForexSources = assets
+              .where((a) => a.symbol.endsWith('.IS') || a.type == AssetType.forex || a.type == AssetType.metal)
+              .map((a) => a.source)
+              .where((s) => s != null && s.isNotEmpty)
+              .cast<String>()
+              .toSet();
+
+          String formatSourceLabel(Set<String> categorySources, String primaryName, String fallbackName) {
+            if (categorySources.contains('STALE_CACHE')) {
+              return 'Stale Cache';
+            }
+            if (categorySources.contains('SERVER_ERROR')) {
+              return 'Server Error';
+            }
+            if (categorySources.any((s) => s.contains('FALLBACK'))) {
+              return '$fallbackName (Fallback)';
+            }
+            if (categorySources.contains('ALPACA')) {
+              return 'Alpaca Market';
+            }
+            if (categorySources.contains('YAHOO')) {
+              return 'Yahoo Finance';
+            }
+            if (categorySources.contains('BIGPARA')) {
+              return 'Bigpara';
+            }
+            return primaryName;
+          }
+
+          final usCryptoLabel = formatSourceLabel(usCryptoSources, 'Alpaca Market', 'Yahoo Finance');
+          final bistForexLabel = formatSourceLabel(bistForexSources, 'Yahoo Finance', 'Bigpara');
+
+          final isFallbackActive = usCryptoSources.any((s) => s.contains('FALLBACK') || s == 'STALE_CACHE') ||
+              bistForexSources.any((s) => s.contains('FALLBACK') || s == 'STALE_CACHE');
+          final isServerError = sources.contains('SERVER_ERROR');
+
+          if (isServerError) {
+            statusColor = Colors.red;
+          } else if (isFallbackActive) {
+            statusColor = Colors.orange;
+          } else {
+            statusColor = Colors.green;
+          }
+
+          providerText = 'US/Crypto: $usCryptoLabel • BIST/Forex: $bistForexLabel';
         }
 
         return Container(
           margin: const EdgeInsets.only(top: 16, bottom: 24),
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
           decoration: BoxDecoration(
-            color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.08),
+            color: statusColor.withValues(alpha: 0.08),
             borderRadius: BorderRadius.circular(12),
             border: Border.all(
-              color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.2),
+              color: statusColor.withValues(alpha: 0.2),
             ),
           ),
           child: Row(
@@ -210,8 +259,8 @@ class SettingsPage extends StatelessWidget {
               Container(
                 width: 8,
                 height: 8,
-                decoration: const BoxDecoration(
-                  color: Colors.green,
+                decoration: BoxDecoration(
+                  color: statusColor,
                   shape: BoxShape.circle,
                 ),
               ),

@@ -163,6 +163,7 @@ class _ChangePasswordPageState extends State<ChangePasswordPage> {
           title: const Text('Change Password'),
           elevation: 0,
           backgroundColor: Colors.transparent,
+          foregroundColor: Theme.of(context).colorScheme.onSurface,
         ),
         body: Center(
           child: Column(
@@ -192,6 +193,7 @@ class _ChangePasswordPageState extends State<ChangePasswordPage> {
         title: const Text('Change Password'),
         elevation: 0,
         backgroundColor: Colors.transparent,
+        foregroundColor: Theme.of(context).colorScheme.onSurface,
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),

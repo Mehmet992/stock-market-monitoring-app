@@ -10,6 +10,7 @@ class HelpSupportPage extends StatelessWidget {
         title: const Text('Help & Support'),
         elevation: 0,
         backgroundColor: Colors.transparent,
+        foregroundColor: Theme.of(context).colorScheme.onSurface,
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),

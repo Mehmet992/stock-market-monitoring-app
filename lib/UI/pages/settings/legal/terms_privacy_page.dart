@@ -10,6 +10,7 @@ class TermsPrivacyPage extends StatelessWidget {
         title: const Text('Terms & Privacy'),
         elevation: 0,
         backgroundColor: Colors.transparent,
+        foregroundColor: Theme.of(context).colorScheme.onSurface,
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),

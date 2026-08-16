@@ -97,6 +97,7 @@ class _ThemeSettingsPageState extends State<ThemeSettingsPage> {
         title: const Text('Theme Settings'),
         elevation: 0,
         backgroundColor: Colors.transparent,
+        foregroundColor: Theme.of(context).colorScheme.onSurface,
       ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())

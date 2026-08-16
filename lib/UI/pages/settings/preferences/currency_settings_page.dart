@@ -103,6 +103,7 @@ class _CurrencySettingsPageState extends State<CurrencySettingsPage> {
         title: const Text('Currency Settings'),
         elevation: 0,
         backgroundColor: Colors.transparent,
+        foregroundColor: Theme.of(context).colorScheme.onSurface,
       ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())

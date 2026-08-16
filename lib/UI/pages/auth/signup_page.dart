@@ -106,6 +106,7 @@ class _SignupPageState extends State<SignupPage> {
       appBar: AppBar(
         elevation: 0,
         backgroundColor: Colors.transparent,
+        foregroundColor: Theme.of(context).colorScheme.onSurface,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () {

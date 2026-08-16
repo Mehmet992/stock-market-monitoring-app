@@ -25,6 +25,7 @@ class AccountSettingsPage extends StatelessWidget {
         title: const Text('Account Settings'),
         elevation: 0,
         backgroundColor: Colors.transparent,
+        foregroundColor: Theme.of(context).colorScheme.onSurface,
       ),
       body: ListView(
         padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),

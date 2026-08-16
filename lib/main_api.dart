@@ -10,6 +10,9 @@ import 'Models/market_asset.dart';
 /// Base URL for the central Node.js backend aggregator deployed on Render
 const String kBackendBaseUrl = 'https://stock-market-backend-q5vu.onrender.com/api/v1';
 
+/// Shared secret header key to authenticate mobile app requests to the central backend
+const String kAppSecretKey = 'stock_market_app_secret_2026_secure_key';
+
 /// Fetches all market assets from the central Node.js backend proxy.
 ///
 /// Reduces mobile network overhead, bypasses mobile IP blocks, and returns
@@ -23,6 +26,7 @@ Future<List<MarketAsset>> fetchAllAssetsConcurrently({int chunkSize = 20}) async
       headers: {
         'Accept': 'application/json',
         'Cache-Control': 'no-cache',
+        'x-app-secret-key': kAppSecretKey,
       },
     ).timeout(const Duration(seconds: 15));
 

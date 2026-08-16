@@ -19,6 +19,7 @@ class _ProfileInfoPageState extends State<ProfileInfoPage> {
         title: const Text('Profile Info'),
         elevation: 0,
         backgroundColor: Colors.transparent,
+        foregroundColor: Theme.of(context).colorScheme.onSurface,
       ),
       body: StreamBuilder<User?>(
         stream: _authService.authStateChanges,

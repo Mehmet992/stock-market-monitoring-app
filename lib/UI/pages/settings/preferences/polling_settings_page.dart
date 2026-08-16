@@ -103,6 +103,7 @@ class _PollingSettingsPageState extends State<PollingSettingsPage> {
         title: const Text('Polling Settings'),
         elevation: 0,
         backgroundColor: Colors.transparent,
+        foregroundColor: Theme.of(context).colorScheme.onSurface,
       ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())

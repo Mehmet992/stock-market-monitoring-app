@@ -28,6 +28,7 @@ class PreferencesSettingsPage extends StatelessWidget {
         title: const Text('Preferences'),
         elevation: 0,
         backgroundColor: Colors.transparent,
+        foregroundColor: Theme.of(context).colorScheme.onSurface,
       ),
       body: ListView(
         padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
