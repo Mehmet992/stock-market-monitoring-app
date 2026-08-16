@@ -36,7 +36,7 @@ class MarketConfig {
     MarketAssetConfig(symbol: 'BTC-USD', displayName: 'Bitcoin', type: AssetType.crypto),
     MarketAssetConfig(symbol: 'ETH-USD', displayName: 'Ethereum', type: AssetType.crypto),
     MarketAssetConfig(symbol: 'SOL-USD', displayName: 'Solana', type: AssetType.crypto),
-    MarketAssetConfig(symbol: 'BNB-USD', displayName: 'Binance Coin', type: AssetType.crypto),
+    MarketAssetConfig(symbol: 'LTC-USD', displayName: 'Litecoin', type: AssetType.crypto),
     MarketAssetConfig(symbol: 'XRP-USD', displayName: 'Ripple', type: AssetType.crypto),
     MarketAssetConfig(symbol: 'ADA-USD', displayName: 'Cardano', type: AssetType.crypto),
     MarketAssetConfig(symbol: 'DOGE-USD', displayName: 'Dogecoin', type: AssetType.crypto),
