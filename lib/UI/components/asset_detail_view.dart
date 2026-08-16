@@ -57,7 +57,7 @@ class AssetDetailView extends StatelessWidget {
             child: Column(
               children: [
                 Text(
-                  asset.regularPrice.toStringAsFixed(2),
+                  asset.formattedPrice,
                   style: const TextStyle(
                     fontSize: 48,
                     fontWeight: FontWeight.bold,
@@ -67,9 +67,9 @@ class AssetDetailView extends StatelessWidget {
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  '${currencyObj.code} (${currencyObj.symbol})',
+                  '${currencyObj.code} (${currencyObj.symbol}) • Unit: ${asset.unitOfMeasure}',
                   style: TextStyle(
-                    fontSize: 16,
+                    fontSize: 14,
                     color: Colors.grey[500],
                   ),
                 ),
@@ -91,7 +91,7 @@ class AssetDetailView extends StatelessWidget {
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    '${isPositive ? '+' : ''}${priceChange.toStringAsFixed(2)}',
+                    asset.formattedChange(priceChange),
                     style: TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
@@ -134,7 +134,9 @@ class AssetDetailView extends StatelessWidget {
             ),
             child: Column(
               children: [
-                _buildDetailRow('Previous Close', asset.previousClose.toStringAsFixed(2)),
+                _buildDetailRow('Previous Close', asset.previousClose.toStringAsFixed(asset.decimalPrecision)),
+                const SizedBox(height: 12),
+                _buildDetailRow('Unit of Measure', asset.unitOfMeasure),
                 const SizedBox(height: 12),
                 _buildDetailRow('Currency', '${currencyObj.name} (${currencyObj.symbol})'),
                 const SizedBox(height: 12),
@@ -144,7 +146,7 @@ class AssetDetailView extends StatelessWidget {
                   _buildDetailRow(
                     'Target Price',
                     (asset.targetAlertPrice != null && asset.targetAlertPrice! > 0)
-                        ? '${asset.targetAlertPrice!.toStringAsFixed(2)} ${currencyObj.symbol}'
+                        ? '${asset.targetAlertPrice!.toStringAsFixed(asset.decimalPrecision)} ${currencyObj.symbol}'
                         : 'Not initialized',
                   ),
                 ],

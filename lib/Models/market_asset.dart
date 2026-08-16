@@ -24,6 +24,50 @@ class MarketAsset {
     this.targetAlertPrice,
   });
 
+  /// Returns the human-readable unit of measurement for this asset
+  String get unitOfMeasure {
+    final sym = symbol.toUpperCase();
+    if (sym == 'GC=F' || sym == 'SI=F' || sym == 'PL=F' || sym == 'PA=F') {
+      return 'Troy Oz';
+    } else if (sym == 'CL=F') {
+      return 'Barrel (bbl)';
+    } else if (sym == 'HG=F') {
+      return 'Lb (Pound)';
+    } else if (sym == 'NG=F') {
+      return 'MMBtu';
+    } else if (type == AssetType.forex) {
+      return 'Exchange Rate';
+    } else if (type == AssetType.crypto) {
+      return 'Token / Coin';
+    } else if (type == AssetType.metal) {
+      return 'Commodity';
+    } else {
+      return 'Per Share';
+    }
+  }
+
+  /// Calculates adaptive decimal precision based on asset category and price magnitude
+  int get decimalPrecision {
+    if (type == AssetType.forex || (type == AssetType.metal && regularPrice < 100.0)) {
+      return 4;
+    }
+    if (regularPrice > 0 && regularPrice < 1.0) {
+      return 4;
+    }
+    return 2;
+  }
+
+  /// Formats regular price with adaptive decimal precision
+  String get formattedPrice {
+    return regularPrice.toStringAsFixed(decimalPrecision);
+  }
+
+  /// Formats numeric price change with adaptive decimal precision
+  String formattedChange(double change) {
+    final prefix = change >= 0 ? '+' : '';
+    return '$prefix${change.toStringAsFixed(decimalPrecision)}';
+  }
+
   static const Object _sentinel = Object();
 
   MarketAsset copyWith({

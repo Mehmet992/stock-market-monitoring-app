@@ -23,7 +23,7 @@ class AssetCard extends StatelessWidget {
 
   String get formattedPrice {
     final currencyObj = Currency.fromCode(asset.currency);
-    return '${asset.regularPrice.toStringAsFixed(2)} ${currencyObj.symbol}';
+    return '${asset.formattedPrice} ${currencyObj.symbol}';
   }
 
   @override
