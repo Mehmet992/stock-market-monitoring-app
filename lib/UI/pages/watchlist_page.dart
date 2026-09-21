@@ -68,11 +68,10 @@ class WatchlistPage extends StatelessWidget {
               );
             }
 
-            return SingleChildScrollView(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Padding(
+            return CustomScrollView(
+              slivers: [
+                SliverToBoxAdapter(
+                  child: Padding(
                     padding: const EdgeInsets.all(16),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -95,7 +94,11 @@ class WatchlistPage extends StatelessWidget {
                       ],
                     ),
                   ),
-                  ...watchedAssets.map((asset) {
+                ),
+                SliverList.builder(
+                  itemCount: watchedAssets.length,
+                  itemBuilder: (context, index) {
+                    final asset = watchedAssets[index];
                     return Dismissible(
                       key: Key(asset.symbol),
                       onDismissed: (direction) {
@@ -137,9 +140,12 @@ class WatchlistPage extends StatelessWidget {
                         },
                       ),
                     );
-                  }),
-                ],
-              ),
+                  },
+                ),
+                const SliverToBoxAdapter(
+                  child: SizedBox(height: 16),
+                ),
+              ],
             );
           },
         );

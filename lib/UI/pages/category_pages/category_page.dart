@@ -86,84 +86,92 @@ class _CategoryPageState extends State<CategoryPage> {
               );
             }
 
-            return Column(
-              children: [
-                Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: TextField(
-                    controller: _searchController,
-                    onChanged: (value) {
-                      setState(() {
-                        _searchQuery = value;
-                      });
-                    },
-                    style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
-                    decoration: InputDecoration(
-                      hintText: 'Search ${widget.categoryName}...',
-                      hintStyle: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant),
-                      prefixIcon: Icon(Icons.search, color: Theme.of(context).colorScheme.onSurfaceVariant),
-                      suffixIcon: _searchQuery.isNotEmpty
-                          ? IconButton(
-                              icon: Icon(Icons.clear, color: Theme.of(context).colorScheme.onSurfaceVariant),
-                              onPressed: () {
-                                _searchController.clear();
-                                setState(() {
-                                  _searchQuery = '';
-                                });
-                              },
-                            )
-                          : null,
-                      filled: true,
-                      fillColor: Theme.of(context).cardColor,
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(8),
-                        borderSide: BorderSide(color: Theme.of(context).dividerColor),
-                      ),
-                      enabledBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(8),
-                        borderSide: BorderSide(color: Theme.of(context).dividerColor),
-                      ),
-                      focusedBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(8),
-                        borderSide: BorderSide(color: Theme.of(context).colorScheme.primary),
+            return CustomScrollView(
+              slivers: [
+                SliverToBoxAdapter(
+                  child: Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: TextField(
+                      controller: _searchController,
+                      onChanged: (value) {
+                        setState(() {
+                          _searchQuery = value;
+                        });
+                      },
+                      style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
+                      decoration: InputDecoration(
+                        hintText: 'Search ${widget.categoryName}...',
+                        hintStyle: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant),
+                        prefixIcon: Icon(Icons.search, color: Theme.of(context).colorScheme.onSurfaceVariant),
+                        suffixIcon: _searchQuery.isNotEmpty
+                            ? IconButton(
+                                icon: Icon(Icons.clear, color: Theme.of(context).colorScheme.onSurfaceVariant),
+                                onPressed: () {
+                                  _searchController.clear();
+                                  setState(() {
+                                    _searchQuery = '';
+                                  });
+                                },
+                              )
+                            : null,
+                        filled: true,
+                        fillColor: Theme.of(context).cardColor,
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8),
+                          borderSide: BorderSide(color: Theme.of(context).dividerColor),
+                        ),
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8),
+                          borderSide: BorderSide(color: Theme.of(context).dividerColor),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8),
+                          borderSide: BorderSide(color: Theme.of(context).colorScheme.primary),
+                        ),
                       ),
                     ),
                   ),
                 ),
-                Expanded(
-                  child: filteredAssets.isEmpty
-                      ? const EmptyStateWidget(
-                          title: 'No Results',
-                          message: 'Try a different search term.',
-                          icon: Icons.search_off,
-                        )
-                      : SingleChildScrollView(
-                          child: Column(
-                            children: filteredAssets.map((asset) {
-                              final isWatched = widget.watchlistService.isWatching(asset.symbol);
-                              return AssetCard(
+                if (filteredAssets.isEmpty)
+                  const SliverFillRemaining(
+                    hasScrollBody: false,
+                    child: EmptyStateWidget(
+                      title: 'No Results',
+                      message: 'Try a different search term.',
+                      icon: Icons.search_off,
+                    ),
+                  )
+                else ...[
+                  SliverList.builder(
+                    itemCount: filteredAssets.length,
+                    itemBuilder: (context, index) {
+                      final asset = filteredAssets[index];
+                      final isWatched = widget.watchlistService.isWatching(asset.symbol);
+                      return AssetCard(
+                        asset: asset,
+                        isWatched: isWatched,
+                        onWatchlistToggle: () {
+                          widget.watchlistService.toggleWatchlist(asset);
+                        },
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => AssetDetailPage(
                                 asset: asset,
-                                isWatched: isWatched,
-                                onWatchlistToggle: () {
-                                  widget.watchlistService.toggleWatchlist(asset);
-                                },
-                                onTap: () {
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (context) => AssetDetailPage(
-                                        asset: asset,
-                                        watchlistService: widget.watchlistService,
-                                        marketService: widget.marketService,
-                                      ),
-                                    ),
-                                  );
-                                },
-                              );
-                            }).toList(),
-                          ),
-                        ),
-                ),
+                                watchlistService: widget.watchlistService,
+                                marketService: widget.marketService,
+                              ),
+                            ),
+                          );
+                        },
+                      );
+                    },
+                  ),
+                  const SliverToBoxAdapter(
+                    child: SizedBox(height: 16),
+                  ),
+                ],
               ],
             );
           },

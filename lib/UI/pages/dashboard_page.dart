@@ -47,11 +47,14 @@ class DashboardPage extends StatelessWidget {
           final rawAssets = snapshot.data!;
           final assets = CurrencyService().convertAssets(rawAssets);
 
-          return SingleChildScrollView(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Padding(
+          final watchedAssets = assets
+              .where((asset) => watchlistService.isWatching(asset.symbol))
+              .toList();
+
+          return CustomScrollView(
+            slivers: [
+              SliverToBoxAdapter(
+                child: Padding(
                   padding: const EdgeInsets.all(16),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -59,9 +62,9 @@ class DashboardPage extends StatelessWidget {
                       Text(
                         'Market Overview',
                         style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                          color: Theme.of(context).colorScheme.onSurface,
-                          fontWeight: FontWeight.bold,
-                        ),
+                              color: Theme.of(context).colorScheme.onSurface,
+                              fontWeight: FontWeight.bold,
+                            ),
                       ),
                       const SizedBox(height: 8),
                       Text(
@@ -74,11 +77,13 @@ class DashboardPage extends StatelessWidget {
                     ],
                   ),
                 ),
-                if (watchlistService.watchlist.isNotEmpty) ...[
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
+              ),
+              if (watchedAssets.isNotEmpty) ...[
+                SliverToBoxAdapter(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                     child: Text(
-                      'Your Watchlist (${watchlistService.watchlist.length})',
+                      'Your Watchlist (${watchedAssets.length})',
                       style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
@@ -86,11 +91,39 @@ class DashboardPage extends StatelessWidget {
                       ),
                     ),
                   ),
-                  ..._buildWatchlistAssets(assets, context),
-                  const SizedBox(height: 24),
-                ],
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                ),
+                SliverList.builder(
+                  itemCount: watchedAssets.length,
+                  itemBuilder: (context, index) {
+                    final asset = watchedAssets[index];
+                    return AssetCard(
+                      asset: asset,
+                      isWatched: true,
+                      onWatchlistToggle: () {
+                        watchlistService.toggleWatchlist(asset);
+                      },
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => AssetDetailPage(
+                              asset: asset,
+                              watchlistService: watchlistService,
+                              marketService: marketService,
+                            ),
+                          ),
+                        );
+                      },
+                    );
+                  },
+                ),
+                const SliverToBoxAdapter(
+                  child: SizedBox(height: 16),
+                ),
+              ],
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                   child: Text(
                     'All Assets',
                     style: TextStyle(
@@ -100,65 +133,41 @@ class DashboardPage extends StatelessWidget {
                     ),
                   ),
                 ),
-                ..._buildAllAssets(assets, context),
-              ],
-            ),
-          );
-        },
-      );},
-    );
-  }
-
-  List<Widget> _buildWatchlistAssets(List<MarketAsset> assets, BuildContext context) {
-    final watchedAssets = assets
-        .where((asset) => watchlistService.isWatching(asset.symbol))
-        .toList();
-
-    return watchedAssets.map((asset) {
-      return AssetCard(
-        asset: asset,
-        isWatched: true,
-        onWatchlistToggle: () {
-          watchlistService.toggleWatchlist(asset);
-        },
-        onTap: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => AssetDetailPage(
-                asset: asset,
-                watchlistService: watchlistService,
-                marketService: marketService,
               ),
-            ),
+              SliverList.builder(
+                itemCount: assets.length,
+                itemBuilder: (context, index) {
+                  final asset = assets[index];
+                  final isWatched = watchlistService.isWatching(asset.symbol);
+                  return AssetCard(
+                    asset: asset,
+                    isWatched: isWatched,
+                    onWatchlistToggle: () {
+                      watchlistService.toggleWatchlist(asset);
+                    },
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => AssetDetailPage(
+                            asset: asset,
+                            watchlistService: watchlistService,
+                            marketService: marketService,
+                          ),
+                        ),
+                      );
+                    },
+                  );
+                },
+              ),
+              const SliverToBoxAdapter(
+                child: SizedBox(height: 16),
+              ),
+            ],
           );
         },
       );
-    }).toList();
-  }
-
-  List<Widget> _buildAllAssets(List<MarketAsset> assets, BuildContext context) {
-    return assets.map((asset) {
-      final isWatched = watchlistService.isWatching(asset.symbol);
-      return AssetCard(
-        asset: asset,
-        isWatched: isWatched,
-        onWatchlistToggle: () {
-          watchlistService.toggleWatchlist(asset);
-        },
-        onTap: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => AssetDetailPage(
-                asset: asset,
-                watchlistService: watchlistService,
-                marketService: marketService,
-              ),
-            ),
-          );
-        },
-      );
-    }).toList();
-  }
+    },
+  );
+}
 }
