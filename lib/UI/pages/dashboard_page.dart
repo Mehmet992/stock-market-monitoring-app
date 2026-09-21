@@ -12,17 +12,17 @@ class DashboardPage extends StatelessWidget {
   final WatchlistService watchlistService;
 
   const DashboardPage({
-    Key? key,
+    super.key,
     required this.marketService,
     required this.watchlistService,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
     return StreamBuilder<List<MarketAsset>>(
       stream: watchlistService.watchlistStream,
       initialData: watchlistService.watchlist,
-      builder: (context, snapshot) {
+      builder: (context, watchlistSnapshot) {
         return StreamBuilder<List<MarketAsset>>(
         stream: marketService.marketDataStream,
         builder: (context, snapshot) {

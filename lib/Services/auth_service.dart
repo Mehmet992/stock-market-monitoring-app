@@ -81,7 +81,7 @@ class AuthService {
 
     if (user != null && !user.emailVerified) {
       final actionCodeSettings = ActionCodeSettings(
-        url: 'https://examroadmaptrackerap-49c86e37.firebaseapp.com',
+        url: 'https://stock-market-monitoring-app.firebaseapp.com',
 
         handleCodeInApp: true,
 

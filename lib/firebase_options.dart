@@ -33,20 +33,20 @@ class DefaultFirebaseOptions {
     }
   }
 
-  static const FirebaseOptions ios = FirebaseOptions(
-    apiKey: 'AIzaSyCxkihXXNNdq8jsXuF8VOSFkDlvWeAfGwc',
-    appId: '1:720592513771:ios:5f6c732309bfc25d6e2cae',
-    messagingSenderId: '720592513771',
-    projectId: 'examroadmaptrackerap-49c86e37',
-    storageBucket: 'examroadmaptrackerap-49c86e37.firebasestorage.app',
-    iosBundleId: 'com.example.stockMarketMonitoringApp',
+  static const FirebaseOptions android = FirebaseOptions(
+    apiKey: 'AIzaSyB8J3FJRgJTK2Plbl-McrbMwu_T84bgCZA',
+    appId: '1:965263908989:android:1ff352c16d1f83af3d1114',
+    messagingSenderId: '965263908989',
+    projectId: 'stock-market-monitoring-app',
+    storageBucket: 'stock-market-monitoring-app.firebasestorage.app',
   );
 
-  static const FirebaseOptions android = FirebaseOptions(
-    apiKey: 'AIzaSyASNTnfcEdmhr5jHdGCQAtrBnn6uiXFs7s',
-    appId: '1:720592513771:android:b228123894f400416e2cae',
-    messagingSenderId: '720592513771',
-    projectId: 'examroadmaptrackerap-49c86e37',
-    storageBucket: 'examroadmaptrackerap-49c86e37.firebasestorage.app',
+  static const FirebaseOptions ios = FirebaseOptions(
+    apiKey: 'AIzaSyBf3bQmA0drABILOBsH57Q5nIgdFVtyrgA',
+    appId: '1:965263908989:ios:7b040edc8392a3413d1114',
+    messagingSenderId: '965263908989',
+    projectId: 'stock-market-monitoring-app',
+    storageBucket: 'stock-market-monitoring-app.firebasestorage.app',
+    iosBundleId: 'com.example.stockMarketMonitoringApp',
   );
 }

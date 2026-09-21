@@ -15,12 +15,12 @@ class CategoryPage extends StatefulWidget {
   final WatchlistService watchlistService;
 
   const CategoryPage({
-    Key? key,
+    super.key,
     required this.categoryName,
     required this.assetType,
     required this.marketService,
     required this.watchlistService,
-  }) : super(key: key);
+  });
 
   @override
   State<CategoryPage> createState() => _CategoryPageState();

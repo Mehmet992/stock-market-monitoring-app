@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:stock_market_monitoring_app/Services/auth_service.dart';
+import 'package:stock_market_monitoring_app/Services/database_service.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -12,6 +13,7 @@ class _LoginPageState extends State<LoginPage> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   final _authService = AuthService();
+  final _databaseService = DatabaseService();
 
   bool _showPassword = false;
   bool _isLoading = false;
@@ -77,17 +79,22 @@ class _LoginPageState extends State<LoginPage> {
 
     try {
       await _authService.signInAnonymously();
+      await _databaseService.saveUserProfile();
       if (mounted) {
         Navigator.of(context).pushReplacementNamed('/home');
       }
     } catch (e) {
-      setState(() {
-        _errorMessage = e.toString();
-      });
+      if (mounted) {
+        setState(() {
+          _errorMessage = e.toString();
+        });
+      }
     } finally {
-      setState(() {
-        _isLoading = false;
-      });
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
     }
   }
 
@@ -232,8 +239,8 @@ class _LoginPageState extends State<LoginPage> {
               Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: Colors.red.withOpacity(0.1),
-                  border: Border.all(color: Colors.red.withOpacity(0.5)),
+                  color: Colors.red.withValues(alpha: 0.1),
+                  border: Border.all(color: Colors.red.withValues(alpha: 0.5)),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Text(

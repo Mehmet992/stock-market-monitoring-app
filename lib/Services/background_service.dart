@@ -147,7 +147,6 @@ Future<void> scheduleBackgroundWorker(double? backgroundPollingTimeInSeconds) as
 
   await Workmanager().initialize(
     callbackDispatcher,
-    isInDebugMode: false,
   );
 
   //Registering a periodic task for notification (checks for every interval which is specified by the user)

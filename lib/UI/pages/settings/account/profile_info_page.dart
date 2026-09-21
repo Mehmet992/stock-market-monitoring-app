@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:stock_market_monitoring_app/Services/auth_service.dart';
+import 'package:stock_market_monitoring_app/Services/database_service.dart';
 
 class ProfileInfoPage extends StatefulWidget {
   const ProfileInfoPage({super.key});
@@ -237,8 +238,9 @@ class _ProfileInfoPageState extends State<ProfileInfoPage> {
                             email: emailController.text.trim(),
                             password: passwordController.text,
                           );
+                          await DatabaseService().saveUserProfile();
 
-                          if (mounted) {
+                          if (context.mounted) {
                             ScaffoldMessenger.of(context).showSnackBar(
                               const SnackBar(
                                 content: Text(
@@ -253,7 +255,7 @@ class _ProfileInfoPageState extends State<ProfileInfoPage> {
                             );
                           }
                         } catch (e) {
-                          if (mounted) {
+                          if (context.mounted) {
                             ScaffoldMessenger.of(context).showSnackBar(
                               SnackBar(
                                 content: Text('Error: $e'),
@@ -262,7 +264,7 @@ class _ProfileInfoPageState extends State<ProfileInfoPage> {
                             );
                           }
                         } finally {
-                          if (mounted) {
+                          if (context.mounted) {
                             setState(() => isLoading = false);
                           }
                         }

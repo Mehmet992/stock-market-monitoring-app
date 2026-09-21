@@ -4,9 +4,9 @@ class LoadingSpinner extends StatelessWidget {
   final String? message;
 
   const LoadingSpinner({
-    Key? key,
+    super.key,
     this.message,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -38,10 +38,10 @@ class ErrorDisplay extends StatelessWidget {
   final VoidCallback? onRetry;
 
   const ErrorDisplay({
-    Key? key,
+    super.key,
     required this.message,
     this.onRetry,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -100,11 +100,11 @@ class EmptyStateWidget extends StatelessWidget {
   final IconData icon;
 
   const EmptyStateWidget({
-    Key? key,
+    super.key,
     required this.title,
     required this.message,
     this.icon = Icons.inbox,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

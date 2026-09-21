@@ -104,8 +104,8 @@ class _EmailVerificationPageState extends State<EmailVerificationPage> {
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
                 color: _isEmailVerified
-                    ? Colors.green.withOpacity(0.1)
-                    : Colors.blue.withOpacity(0.1),
+                    ? Colors.green.withValues(alpha: 0.1)
+                    : Colors.blue.withValues(alpha: 0.1),
                 border: Border.all(
                   color: _isEmailVerified ? Colors.green : Colors.blue,
                   width: 2,

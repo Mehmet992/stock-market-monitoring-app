@@ -49,7 +49,9 @@ class CurrencyService {
           upperSym.endsWith('.DE') ||
           upperSym.endsWith('.MI') ||
           upperSym.endsWith('.MC') ||
-          upperSym.endsWith('.AS')) return 'EUR';
+          upperSym.endsWith('.AS')) {
+        return 'EUR';
+      }
       if (upperSym.endsWith('.L')) return 'GBP';
       if (upperSym.endsWith('.T')) return 'JPY';
       if (upperSym.endsWith('.TO')) return 'CAD';

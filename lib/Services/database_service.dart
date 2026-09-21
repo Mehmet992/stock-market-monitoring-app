@@ -50,8 +50,11 @@ class DatabaseService {
       return;
     }
 
-    // Existing user: update only non-null passed parameters
-    final Map<String, dynamic> updateData = {};
+    // Existing user: update non-null passed parameters, and sync current email/isAnonymous status
+    final Map<String, dynamic> updateData = {
+      'email': user.email,
+      'isAnonymous': user.isAnonymous,
+    };
 
     if (currency != null) {
       updateData['defaultCurrency'] = currency.code;
@@ -67,9 +70,7 @@ class DatabaseService {
       updateData['backgroundPollingTime'] = backgroundPollingTime;
     }
 
-    if (updateData.isNotEmpty) {
-      await docRef.set(updateData, SetOptions(merge: true));
-    }
+    await docRef.set(updateData, SetOptions(merge: true));
 
     if (kDebugMode) {
       debugPrint(
@@ -77,21 +78,26 @@ class DatabaseService {
     }
   }
 
-  /// Load user profile from database
+  /// Load user profile from database. Auto-initializes if doc does not exist.
   Future<UserDataModel?> getUserProfile() async {
-    final userId = _auth.currentUser?.uid;
-    if (userId == null) {
+    final user = _auth.currentUser;
+    if (user == null) {
       throw Exception("User not logged in!");
     }
 
     try {
-      final doc = await _db.collection('users').doc(userId).get();
+      var doc = await _db.collection('users').doc(user.uid).get();
+      if (!doc.exists) {
+        await saveUserProfile();
+        doc = await _db.collection('users').doc(user.uid).get();
+      }
+
       if (doc.exists) {
         final profile = UserDataModel.fromFirestore(doc);
         CurrencyService().defaultCurrency = profile.defaultCurrency;
         if (kDebugMode) {
           debugPrint(
-              '[DatabaseService] User profile loaded for UID: $userId (currency: ${profile.defaultCurrency.code})');
+              '[DatabaseService] User profile loaded for UID: ${user.uid} (isAnonymous: ${profile.isAnonymous}, currency: ${profile.defaultCurrency.code})');
         }
         return profile;
       }

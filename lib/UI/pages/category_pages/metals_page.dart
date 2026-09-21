@@ -9,10 +9,10 @@ class MetalsPage extends StatelessWidget {
   final WatchlistService watchlistService;
 
   const MetalsPage({
-    Key? key,
+    super.key,
     required this.marketService,
     required this.watchlistService,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

@@ -60,8 +60,7 @@ class _AppShellState extends State<AppShell> with WidgetsBindingObserver {
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
-    _marketService.dispose();
-    _watchlistService.dispose();
+    _marketService.stopPolling();
     super.dispose();
   }
 
@@ -86,7 +85,24 @@ class _AppShellState extends State<AppShell> with WidgetsBindingObserver {
         title: const Text('Stock Market Monitor'),
         elevation: 0,
       ),
-      body: _buildPage(_selectedIndex),
+      body: IndexedStack(
+        index: _selectedIndex,
+        children: [
+          DashboardPage(
+            marketService: _marketService,
+            watchlistService: _watchlistService,
+          ),
+          WatchlistPage(
+            marketService: _marketService,
+            watchlistService: _watchlistService,
+          ),
+          AssetsMenu(
+            marketService: _marketService,
+            watchlistService: _watchlistService,
+          ),
+          const SettingsPage(),
+        ],
+      ),
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _selectedIndex,
         onTap: (index) {
@@ -119,29 +135,5 @@ class _AppShellState extends State<AppShell> with WidgetsBindingObserver {
         ],
       ),
     );
-  }
-
-  Widget _buildPage(int index) {
-    switch (index) {
-      case 0:
-        return DashboardPage(
-          marketService: _marketService,
-          watchlistService: _watchlistService,
-        );
-      case 1:
-        return WatchlistPage(
-          marketService: _marketService,
-          watchlistService: _watchlistService,
-        );
-      case 2:
-        return AssetsMenu(
-          marketService: _marketService,
-          watchlistService: _watchlistService,
-        );
-      case 3:
-        return const SettingsPage();
-      default:
-        return const SizedBox.shrink();
-    }
   }
 }
