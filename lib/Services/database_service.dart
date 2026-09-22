@@ -14,7 +14,8 @@ class DatabaseService {
 
   /// Save or update user profile in database.
   /// Initialized new user accounts with default fields, and performs partial updates for existing users.
-  Future<void> saveUserProfile({
+  /// Returns the newly created [UserDataModel] if a new user profile was initialized.
+  Future<UserDataModel?> saveUserProfile({
     Currency? currency,
     Theme? theme,
     double? pollingTime,
@@ -30,7 +31,7 @@ class DatabaseService {
 
     if (!docSnapshot.exists) {
       // First time initialization for new user account
-      final userData = UserDataModel(
+      final newProfile = UserDataModel(
         uid: user.uid,
         email: user.email,
         isAnonymous: user.isAnonymous,
@@ -38,16 +39,16 @@ class DatabaseService {
         theme: theme ?? Theme.system,
         pollingTime: pollingTime ?? 10.0,
         backgroundPollingTime: backgroundPollingTime ?? 3600.0,
-      ).toFirestoreMap();
+      );
 
-      await docRef.set(userData, SetOptions(merge: true));
+      await docRef.set(newProfile.toFirestoreMap(), SetOptions(merge: true));
       CurrencyService().defaultCurrency = currency ?? Currency.usd;
 
       if (kDebugMode) {
         debugPrint(
             '[DatabaseService] Initialized new user profile for UID: ${user.uid}');
       }
-      return;
+      return newProfile;
     }
 
     // Existing user: update non-null passed parameters, and sync current email/isAnonymous status
@@ -76,6 +77,7 @@ class DatabaseService {
       debugPrint(
           '[DatabaseService] User profile updated for UID: ${user.uid} ($updateData)');
     }
+    return null;
   }
 
   /// Load user profile from database. Auto-initializes if doc does not exist.
@@ -86,22 +88,18 @@ class DatabaseService {
     }
 
     try {
-      var doc = await _db.collection('users').doc(user.uid).get();
+      final doc = await _db.collection('users').doc(user.uid).get();
       if (!doc.exists) {
-        await saveUserProfile();
-        doc = await _db.collection('users').doc(user.uid).get();
+        return await saveUserProfile();
       }
 
-      if (doc.exists) {
-        final profile = UserDataModel.fromFirestore(doc);
-        CurrencyService().defaultCurrency = profile.defaultCurrency;
-        if (kDebugMode) {
-          debugPrint(
-              '[DatabaseService] User profile loaded for UID: ${user.uid} (isAnonymous: ${profile.isAnonymous}, currency: ${profile.defaultCurrency.code})');
-        }
-        return profile;
+      final profile = UserDataModel.fromFirestore(doc);
+      CurrencyService().defaultCurrency = profile.defaultCurrency;
+      if (kDebugMode) {
+        debugPrint(
+            '[DatabaseService] User profile loaded for UID: ${user.uid} (isAnonymous: ${profile.isAnonymous}, currency: ${profile.defaultCurrency.code})');
       }
-      return null;
+      return profile;
     } catch (e) {
       if (kDebugMode) {
         debugPrint('[DatabaseService] Error loading user profile: $e');
@@ -215,6 +213,31 @@ class DatabaseService {
         debugPrint('[DatabaseService] Error loading watchlist: $e');
       }
       return [];
+    }
+  }
+
+  /// Delete user profile and watchlist subcollection from Firestore
+  Future<void> deleteUserProfile(String targetUid) async {
+    try {
+      final userRef = _db.collection('users').doc(targetUid);
+
+      // Delete all documents in watchlist subcollection
+      final watchlistDocs = await userRef.collection('watchlist').get();
+      for (final doc in watchlistDocs.docs) {
+        await doc.reference.delete();
+      }
+
+      // Delete main user profile document
+      await userRef.delete();
+
+      if (kDebugMode) {
+        debugPrint(
+            '[DatabaseService] Deleted profile and watchlist for UID: $targetUid');
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        debugPrint('[DatabaseService] Error deleting user profile: $e');
+      }
     }
   }
 }

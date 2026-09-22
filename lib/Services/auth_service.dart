@@ -50,9 +50,33 @@ class AuthService {
 
   Future<void> signInAnonymously() async {
     try {
+      final user = _firebaseAuth.currentUser;
+      if (user != null && user.isAnonymous) {
+        if (kDebugMode) {
+          debugPrint(
+              '[AuthService] Resuming active anonymous session for UID: ${user.uid}');
+        }
+        return;
+      }
+
       await _firebaseAuth.signInAnonymously();
       if (kDebugMode) {
         debugPrint('[AuthService] Signed in anonymously');
+      }
+    } on FirebaseAuthException catch (e) {
+      throw _handleAuthException(e);
+    }
+  }
+
+  Future<void> deleteCurrentUser() async {
+    try {
+      final user = _firebaseAuth.currentUser;
+      if (user != null) {
+        final uid = user.uid;
+        await user.delete();
+        if (kDebugMode) {
+          debugPrint('[AuthService] Deleted user account for UID: $uid');
+        }
       }
     } on FirebaseAuthException catch (e) {
       throw _handleAuthException(e);
