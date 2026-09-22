@@ -28,7 +28,8 @@ class SettingsPage extends StatelessWidget {
               icon: Icons.person,
               title: 'Profile Info',
               subtitle: 'View and manage your profile',
-              onTap: () => Navigator.pushNamed(context, '/account-settings'),
+              onTap: () => Navigator.pushNamed(context, '/account-settings',
+                  arguments: 'profile'),
             ),
             _buildSettingsCard(
               context,
