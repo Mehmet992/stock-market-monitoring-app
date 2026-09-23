@@ -126,7 +126,10 @@ class WatchlistService {
 
   /// Update target price for an asset and persist to database
   Future<void> updateTargetPrice(MarketAsset asset, double? targetPrice) async {
-    final updatedAsset = asset.copyWith(targetAlertPrice: targetPrice);
+    final updatedAsset = asset.copyWith(
+      targetAlertPrice: targetPrice,
+      isTargetAlertTriggered: false,
+    );
     final index = _watchlist.indexWhere((a) => a.symbol == asset.symbol);
     if (index != -1) {
       _watchlist[index] = updatedAsset;
