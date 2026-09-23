@@ -3,14 +3,31 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 
 class NotificationService {
-  static final NotificationService _instance = NotificationService._internal();
+  static NotificationService _instance = NotificationService._internal();
   factory NotificationService() => _instance;
-  NotificationService._internal();
+  NotificationService._internal({FlutterLocalNotificationsPlugin? plugin})
+      : _notificationsPlugin = plugin ?? FlutterLocalNotificationsPlugin();
 
-  final FlutterLocalNotificationsPlugin _notificationsPlugin =
-      FlutterLocalNotificationsPlugin();
+  @visibleForTesting
+  factory NotificationService.withPlugin(FlutterLocalNotificationsPlugin plugin) {
+    return NotificationService._internal(plugin: plugin);
+  }
+
+  @visibleForTesting
+  static void setMockInstance(NotificationService service) {
+    _instance = service;
+  }
+
+  @visibleForTesting
+  static void resetInstance() {
+    _instance = NotificationService._internal();
+  }
+
+  final FlutterLocalNotificationsPlugin _notificationsPlugin;
 
   bool _isInitialized = false;
+
+  bool get isInitialized => _isInitialized;
 
   Future<void> initialize({bool isBackground = false}) async {
     if (_isInitialized) return;
