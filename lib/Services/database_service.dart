@@ -9,8 +9,12 @@ import 'package:stock_market_monitoring_app/Services/currency_service.dart';
 import '../Enums/theme.dart';
 
 class DatabaseService {
-  final FirebaseFirestore _db = FirebaseFirestore.instance;
-  final FirebaseAuth _auth = FirebaseAuth.instance;
+  final FirebaseFirestore _db;
+  final FirebaseAuth _auth;
+
+  DatabaseService({FirebaseFirestore? db, FirebaseAuth? auth})
+      : _db = db ?? FirebaseFirestore.instance,
+        _auth = auth ?? FirebaseAuth.instance;
 
   /// Save or update user profile in database.
   /// Initialized new user accounts with default fields, and performs partial updates for existing users.
@@ -213,6 +217,30 @@ class DatabaseService {
         debugPrint('[DatabaseService] Error loading watchlist: $e');
       }
       return [];
+    }
+  }
+
+  /// Update the target alert triggered flag for a watchlist asset
+  Future<void> updateTargetAlertTriggered(String symbol, bool isTriggered) async {
+    final userId = _auth.currentUser?.uid;
+    if (userId == null) return;
+
+    try {
+      await _db
+          .collection('users')
+          .doc(userId)
+          .collection('watchlist')
+          .doc(symbol)
+          .update({'isTargetAlertTriggered': isTriggered});
+      if (kDebugMode) {
+        debugPrint(
+            '[DatabaseService] Updated target alert triggered ($isTriggered) for $symbol (UID: $userId)');
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        debugPrint(
+            '[DatabaseService] Error updating target alert trigger for $symbol: $e');
+      }
     }
   }
 

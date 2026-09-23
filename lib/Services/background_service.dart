@@ -31,15 +31,18 @@ void callbackDispatcher() {
       final userProfile = await dbService.getUserProfile();
       final displayCurrency = userProfile?.defaultCurrency ?? Currency.usd;
 
-      // Skip API network calls and notification system if no assets have a target price set
+      // Skip API network calls and notification system if no untriggered assets have a target price set
       final targetAssets = watchlist
-          .where((a) => a.targetAlertPrice != null && a.targetAlertPrice! > 0)
+          .where((a) =>
+              a.targetAlertPrice != null &&
+              a.targetAlertPrice! > 0 &&
+              !a.isTargetAlertTriggered)
           .toList();
 
       if (targetAssets.isEmpty) {
         if (kDebugMode) {
           debugPrint(
-              '[BackgroundWorker] No assets have a target price set up. Skipping notification checks.');
+              '[BackgroundWorker] No active untriggered target prices configured. Skipping notification checks.');
         }
         return Future.value(true);
       }
@@ -96,8 +99,11 @@ void callbackDispatcher() {
             title: title,
             body: body,
           );
+          // Persist trigger state to Firestore so notification is sent only once until a new target price is set
+          await dbService.updateTargetAlertTriggered(targetAsset.symbol, true);
           if (kDebugMode) {
-            debugPrint('[BackgroundWorker] Fired alert for ${targetAsset.symbol}');
+            debugPrint(
+                '[BackgroundWorker] Fired alert and updated trigger state for ${targetAsset.symbol}');
           }
         }
       }

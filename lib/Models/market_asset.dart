@@ -11,6 +11,7 @@ class MarketAsset {
 
   final DateTime? addedAt;
   final double? targetAlertPrice;
+  final bool isTargetAlertTriggered;
 
   MarketAsset({
     required this.regularPrice,
@@ -22,6 +23,7 @@ class MarketAsset {
     this.source,
     this.addedAt,
     this.targetAlertPrice,
+    this.isTargetAlertTriggered = false,
   });
 
   /// Returns the human-readable unit of measurement for this asset
@@ -80,6 +82,7 @@ class MarketAsset {
     String? source,
     DateTime? addedAt,
     Object? targetAlertPrice = _sentinel,
+    bool? isTargetAlertTriggered,
   }) {
     return MarketAsset(
       regularPrice: regularPrice ?? this.regularPrice,
@@ -93,6 +96,8 @@ class MarketAsset {
       targetAlertPrice: targetAlertPrice == _sentinel
           ? this.targetAlertPrice
           : targetAlertPrice as double?,
+      isTargetAlertTriggered:
+          isTargetAlertTriggered ?? this.isTargetAlertTriggered,
     );
   }
 
@@ -156,6 +161,7 @@ class MarketAsset {
       ? (docData['addedAt'] as Timestamp).toDate()
       : null,
       targetAlertPrice: (docData['targetAlertPrice'] as num?)?.toDouble(),
+      isTargetAlertTriggered: docData['isTargetAlertTriggered'] as bool? ?? false,
     );
   }
 
@@ -167,6 +173,7 @@ class MarketAsset {
       'type' : type.name,
       'addedAt' : FieldValue.serverTimestamp(),
       'targetAlertPrice' : targetAlertPrice,
+      'isTargetAlertTriggered' : isTargetAlertTriggered,
     };
   }
 }
