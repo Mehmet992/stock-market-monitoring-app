@@ -13,8 +13,8 @@ class WatchlistService {
   List<MarketAsset> _watchlist = [];
   late DatabaseService _databaseService;
 
-  WatchlistService() {
-    _databaseService = DatabaseService();
+  WatchlistService({DatabaseService? databaseService}) {
+    _databaseService = databaseService ?? DatabaseService();
   }
 
   /// Gets the watchlist stream
