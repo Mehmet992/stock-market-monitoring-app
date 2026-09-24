@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:stock_market_monitoring_app/Enums/currency.dart';
 import 'package:stock_market_monitoring_app/Models/market_asset.dart';
+import 'asset_chart_view.dart';
 
 class AssetDetailView extends StatelessWidget {
   final MarketAsset asset;
@@ -125,7 +126,12 @@ class AssetDetailView extends StatelessWidget {
               ),
             ],
           ),
-          const SizedBox(height: 32),
+          const SizedBox(height: 16),
+          AssetChartView(
+            symbol: asset.symbol,
+            currency: asset.currency,
+          ),
+          const SizedBox(height: 16),
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(

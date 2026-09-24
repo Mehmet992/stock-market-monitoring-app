@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:io' show Platform;
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'package:stock_market_monitoring_app/ConfigClasses/market_asset_config.dart';
@@ -7,8 +8,24 @@ import 'package:stock_market_monitoring_app/Enums/asset_types.dart';
 import 'ConfigClasses/market_config.dart';
 import 'Models/market_asset.dart';
 
-/// Base URL for the central Node.js backend aggregator deployed on Render
-const String kBackendBaseUrl = 'https://stock-market-backend-q5vu.onrender.com/api/v1';
+/// Production cloud backend URL
+const String kCloudBackendUrl = 'https://stock-market-backend-q5vu.onrender.com/api/v1';
+
+/// Base URL for the central Node.js backend aggregator.
+///
+/// In debug mode:
+/// - Android emulator uses 10.0.2.2 to access the host machine's localhost.
+/// - iOS simulator, desktop, and other environments use localhost.
+/// In release mode: uses production cloud URL.
+String get kBackendBaseUrl {
+  if (kDebugMode) {
+    if (!kIsWeb && Platform.isAndroid) {
+      return 'http://10.0.2.2:8080/api/v1';
+    }
+    return 'http://localhost:8080/api/v1';
+  }
+  return kCloudBackendUrl;
+}
 
 /// Shared secret header key to authenticate mobile app requests to the central backend
 const String kAppSecretKey = 'stock_market_app_secret_2026_secure_key';

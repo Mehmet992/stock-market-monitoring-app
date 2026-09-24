@@ -41,7 +41,7 @@ class DatabaseService {
         isAnonymous: user.isAnonymous,
         defaultCurrency: currency ?? Currency.usd,
         theme: theme ?? Theme.system,
-        pollingTime: pollingTime ?? 10.0,
+        pollingTime: pollingTime ?? 30.0,
         backgroundPollingTime: backgroundPollingTime ?? 3600.0,
       );
 

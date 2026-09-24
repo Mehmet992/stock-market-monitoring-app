@@ -29,7 +29,7 @@ void main() {
         expect(profile!.uid, uid);
         expect(profile.defaultCurrency, Currency.usd);
         expect(profile.theme, Theme.system);
-        expect(profile.pollingTime, 10.0);
+        expect(profile.pollingTime, 30.0);
         expect(profile.backgroundPollingTime, 3600.0);
 
         final doc = await fakeFirestore.collection('users').doc(uid).get();

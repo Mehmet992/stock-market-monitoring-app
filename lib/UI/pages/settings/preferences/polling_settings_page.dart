@@ -11,7 +11,7 @@ class PollingSettingsPage extends StatefulWidget {
 }
 
 class _PollingSettingsPageState extends State<PollingSettingsPage> {
-  double _selectedPollingTime = 15.0;
+  double _selectedPollingTime = 30.0;
   bool _isLoading = false;
   bool _isSavingPolling = false;
   final DatabaseService _databaseService = DatabaseService();
@@ -96,7 +96,7 @@ class _PollingSettingsPageState extends State<PollingSettingsPage> {
 
   @override
   Widget build(BuildContext context) {
-    final pollingOptions = [10.0, 15.0, 30.0, 60.0];
+    final pollingOptions = [30.0, 60.0];
 
     return Scaffold(
       appBar: AppBar(

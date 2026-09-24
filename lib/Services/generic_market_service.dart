@@ -24,7 +24,7 @@ class GenericMarketService {
     yield* _marketDataController.stream;
   }
 
-  void startPolling({Duration interval = const Duration(seconds: 15)}) {
+  void startPolling({Duration interval = const Duration(seconds: 30)}) {
     //Avoiding multiple timers
     stopPolling();
 

@@ -31,7 +31,7 @@ class UserDataModel {
       isAnonymous: data['isAnonymous'] ?? true,
       defaultCurrency: Currency.fromCode(data['defaultCurrency']),
       theme: Theme.fromCode(data['theme']),
-      pollingTime: (data['pollingTime'] as num?)?.toDouble() ?? 15.0,
+      pollingTime: (data['pollingTime'] as num?)?.toDouble() ?? 30.0,
       backgroundPollingTime: (data['backgroundPollingTime'] as num?)?.toDouble() ?? 3600,
     );
   }

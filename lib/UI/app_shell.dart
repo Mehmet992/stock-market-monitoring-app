@@ -36,7 +36,7 @@ class _AppShellState extends State<AppShell> with WidgetsBindingObserver {
   Future<void> _initializeAppData() async {
     await _watchlistService.initializeWatchlist();
     final profile = await DatabaseService().getUserProfile();
-    final pollingSecs = profile?.pollingTime.toInt() ?? 15;
+    final pollingSecs = profile?.pollingTime.toInt() ?? 30;
     _marketService.startPolling(interval: Duration(seconds: pollingSecs));
 
     if (mounted) {
