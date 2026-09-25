@@ -4,6 +4,7 @@ import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
 import 'package:stock_market_monitoring_app/Models/chart_point.dart';
 import 'package:stock_market_monitoring_app/Services/chart_service.dart';
+import 'package:stock_market_monitoring_app/UI/components/asset_chart_view.dart';
 
 void main() {
   group('ChartPoint Model Tests', () {
@@ -57,6 +58,47 @@ void main() {
       expect(p1, equals(p2));
       expect(p1.hashCode, equals(p2.hashCode));
       expect(p1, isNot(equals(p3)));
+    });
+  });
+
+  group('Chart Point Downsampling Tests', () {
+    test('returns points unchanged if count is less than or equal to maxPoints', () {
+      final raw = List.generate(
+        15,
+        (i) => ChartPoint(
+          timestamp: DateTime.fromMillisecondsSinceEpoch(1000000 + i * 1000),
+          price: 100.0 + i,
+        ),
+      );
+
+      final result = AssetChartView.downsamplePoints(raw, maxPoints: 30);
+      expect(result.length, equals(15));
+      expect(result.first.price, equals(100.0));
+      expect(result.last.price, equals(114.0));
+    });
+
+    test('downsamples 200 points to 30 points and preserves first & last points', () {
+      final raw = List.generate(
+        200,
+        (i) => ChartPoint(
+          timestamp: DateTime.fromMillisecondsSinceEpoch(1000000 + i * 1000),
+          price: 100.0 + i * 0.5,
+        ),
+      );
+
+      final result = AssetChartView.downsamplePoints(raw, maxPoints: 30);
+      expect(result.length, equals(30));
+      // First point must be identical to raw.first
+      expect(result.first.timestamp, equals(raw.first.timestamp));
+      expect(result.first.price, equals(raw.first.price));
+      // Last point must be identical to raw.last
+      expect(result.last.timestamp, equals(raw.last.timestamp));
+      expect(result.last.price, equals(raw.last.price));
+    });
+
+    test('handles empty points list gracefully', () {
+      final result = AssetChartView.downsamplePoints([]);
+      expect(result, isEmpty);
     });
   });
 

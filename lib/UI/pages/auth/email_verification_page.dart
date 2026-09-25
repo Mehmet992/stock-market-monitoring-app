@@ -99,62 +99,61 @@ class _EmailVerificationPageState extends State<EmailVerificationPage> {
             const SizedBox(height: 48),
             // Success Icon or Pending Icon
             Container(
-              width: 100,
-              height: 100,
+              width: 90,
+              height: 90,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: _isEmailVerified
-                    ? Colors.green.withValues(alpha: 0.1)
-                    : Colors.blue.withValues(alpha: 0.1),
+                color: const Color(0xFF00C805).withValues(alpha: 0.12),
                 border: Border.all(
-                  color: _isEmailVerified ? Colors.green : Colors.blue,
+                  color: const Color(0xFF00C805),
                   width: 2,
                 ),
               ),
               child: Center(
                 child: Icon(
-                  _isEmailVerified ? Icons.check_circle : Icons.mail_outline,
-                  size: 56,
-                  color: _isEmailVerified ? Colors.green : Colors.blue,
+                  _isEmailVerified ? Icons.check_circle_rounded : Icons.mark_email_read_rounded,
+                  size: 48,
+                  color: const Color(0xFF00C805),
                 ),
               ),
             ),
-            const SizedBox(height: 32),
+            const SizedBox(height: 28),
             // Title
             Text(
               _isEmailVerified ? 'Email Verified!' : 'Verify Your Email',
-              style: Theme.of(context).textTheme.headlineLarge?.copyWith(
-                fontWeight: FontWeight.bold,
-                color: Colors.white,
+              style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                fontWeight: FontWeight.w800,
+                color: Theme.of(context).colorScheme.onSurface,
+                letterSpacing: -0.5,
               ),
               textAlign: TextAlign.center,
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 12),
             // Description
             Text(
               _isEmailVerified
                   ? 'Your email has been verified. Welcome to Stock Market Monitor!'
-                  : 'We\'ve sent a verification email to ${FirebaseAuth.instance.currentUser?.email}.\n\nPlease click the link in the email to verify your account.',
-              style: Theme.of(
-                context,
-              ).textTheme.bodyLarge?.copyWith(color: Colors.grey[400]),
+                  : 'We\'ve sent a verification email to ${FirebaseAuth.instance.currentUser?.email}.\n\nPlease click the link in the email to complete your account setup.',
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+              ),
               textAlign: TextAlign.center,
             ),
-            const SizedBox(height: 48),
+            const SizedBox(height: 40),
             if (!_isEmailVerified) ...[
               // Resend Email Button
               SizedBox(
                 width: double.infinity,
-                height: 56,
+                height: 52,
                 child: ElevatedButton(
-                  onPressed: _isResendingEmail
-                      ? null
-                      : _resendVerificationEmail,
+                  onPressed: _isResendingEmail ? null : _resendVerificationEmail,
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.blue,
-                    disabledBackgroundColor: Colors.grey[700],
+                    backgroundColor: const Color(0xFF00C805),
+                    foregroundColor: Colors.black,
+                    elevation: 0,
+                    disabledBackgroundColor: const Color(0xFF00C805).withValues(alpha: 0.3),
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
+                      borderRadius: BorderRadius.circular(26),
                     ),
                   ),
                   child: _isResendingEmail
@@ -164,38 +163,43 @@ class _EmailVerificationPageState extends State<EmailVerificationPage> {
                           child: CircularProgressIndicator(
                             strokeWidth: 2,
                             valueColor: AlwaysStoppedAnimation<Color>(
-                              Colors.white,
+                              Colors.black,
                             ),
                           ),
                         )
-                      : Text(
+                      : const Text(
                           'Resend Verification Email',
-                          style: Theme.of(context).textTheme.labelLarge
-                              ?.copyWith(
-                                color: Colors.white,
-                                fontWeight: FontWeight.bold,
-                              ),
+                          style: TextStyle(
+                            fontSize: 15,
+                            fontWeight: FontWeight.w700,
+                            letterSpacing: 0.2,
+                          ),
                         ),
                 ),
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: 12),
               // Logout Button
               SizedBox(
                 width: double.infinity,
-                height: 56,
+                height: 52,
                 child: OutlinedButton(
                   onPressed: _handleLogout,
                   style: OutlinedButton.styleFrom(
-                    side: BorderSide(color: Colors.grey[600]!),
+                    foregroundColor: Theme.of(context).colorScheme.onSurface,
+                    side: BorderSide(
+                      color: Theme.of(context).brightness == Brightness.dark
+                          ? Colors.white.withValues(alpha: 0.15)
+                          : Colors.black.withValues(alpha: 0.15),
+                    ),
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
+                      borderRadius: BorderRadius.circular(26),
                     ),
                   ),
-                  child: Text(
+                  child: const Text(
                     'Back to Login',
-                    style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                      color: Colors.grey[300],
-                      fontWeight: FontWeight.bold,
+                    style: TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w600,
                     ),
                   ),
                 ),

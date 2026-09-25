@@ -16,6 +16,32 @@ class AssetChartView extends StatefulWidget {
     this.chartService,
   });
 
+  static const int maxChartPoints = 30;
+
+  static List<ChartPoint> downsamplePoints(
+    List<ChartPoint> raw, {
+    int maxPoints = maxChartPoints,
+  }) {
+    if (raw.length <= maxPoints) return raw;
+
+    final List<ChartPoint> sampled = [];
+    final double step = (raw.length - 1) / (maxPoints - 1);
+
+    for (int i = 0; i < maxPoints; i++) {
+      final int index = (i * step).round().clamp(0, raw.length - 1);
+      if (sampled.isEmpty || sampled.last.timestamp != raw[index].timestamp) {
+        sampled.add(raw[index]);
+      }
+    }
+
+    if (sampled.isNotEmpty) {
+      sampled[0] = raw.first;
+      sampled[sampled.length - 1] = raw.last;
+    }
+
+    return sampled;
+  }
+
   @override
   State<AssetChartView> createState() => _AssetChartViewState();
 }
@@ -57,7 +83,7 @@ class _AssetChartViewState extends State<AssetChartView> {
 
     if (mounted) {
       setState(() {
-        _points = points;
+        _points = AssetChartView.downsamplePoints(points);
         _isLoading = false;
       });
     }
@@ -85,49 +111,63 @@ class _AssetChartViewState extends State<AssetChartView> {
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final cardColor = isDark ? const Color(0xFF1E1E1E) : Colors.grey[100]!;
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    final cardColor = isDark ? const Color(0xFF11161F) : Colors.white;
+    final borderColor = isDark
+        ? Colors.white.withValues(alpha: 0.06)
+        : Colors.black.withValues(alpha: 0.05);
 
     return Container(
       margin: const EdgeInsets.symmetric(vertical: 16),
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
         color: cardColor,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: isDark ? Colors.white10 : Colors.black12,
-        ),
+        border: Border.all(color: borderColor),
+        boxShadow: isDark
+            ? null
+            : [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.03),
+                  blurRadius: 10,
+                  offset: const Offset(0, 4),
+                ),
+              ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // Header with scrubber stats
-          _buildHeader(),
+          _buildHeader(theme),
           const SizedBox(height: 16),
 
           // Chart Area
           SizedBox(
             height: 220,
-            child: _buildChartContent(),
+            child: _buildChartContent(theme, isDark),
           ),
           const SizedBox(height: 16),
 
           // Timeframe Segmented Chips
-          _buildTimeframeSelector(),
+          _buildTimeframeSelector(theme, isDark),
         ],
       ),
     );
   }
 
-  Widget _buildHeader() {
+  Widget _buildHeader(ThemeData theme) {
     if (_isLoading) {
-      return const SizedBox(
-        height: 40,
+      return SizedBox(
+        height: 44,
         child: Center(
           child: SizedBox(
             width: 18,
             height: 18,
-            child: CircularProgressIndicator(strokeWidth: 2),
+            child: CircularProgressIndicator(
+              strokeWidth: 2,
+              valueColor: AlwaysStoppedAnimation<Color>(theme.colorScheme.primary),
+            ),
           ),
         ),
       );
@@ -142,7 +182,7 @@ class _AssetChartViewState extends State<AssetChartView> {
     final change = displayPoint.price - firstPoint.price;
     final changePercent = firstPoint.price > 0 ? (change / firstPoint.price) * 100 : 0.0;
     final isPositive = change >= 0;
-    final color = isPositive ? const Color(0xFF00E676) : const Color(0xFFFF5252);
+    final trendColor = isPositive ? const Color(0xFF00C805) : const Color(0xFFFF5000);
 
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -152,9 +192,11 @@ class _AssetChartViewState extends State<AssetChartView> {
           children: [
             Text(
               _formatPrice(displayPoint.price),
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 22,
-                fontWeight: FontWeight.bold,
+                fontWeight: FontWeight.w800,
+                color: theme.colorScheme.onSurface,
+                fontFeatures: const [FontFeature.tabularFigures()],
               ),
             ),
             const SizedBox(height: 2),
@@ -162,31 +204,33 @@ class _AssetChartViewState extends State<AssetChartView> {
               _formatDate(displayPoint.timestamp),
               style: TextStyle(
                 fontSize: 12,
-                color: Colors.grey[500],
+                color: theme.colorScheme.onSurfaceVariant,
+                fontWeight: FontWeight.w400,
               ),
             ),
           ],
         ),
         Container(
-          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
           decoration: BoxDecoration(
-            color: color.withAlpha(38),
+            color: trendColor.withValues(alpha: 0.12),
             borderRadius: BorderRadius.circular(8),
           ),
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
               Icon(
-                isPositive ? Icons.arrow_drop_up : Icons.arrow_drop_down,
-                color: color,
+                isPositive ? Icons.arrow_drop_up_rounded : Icons.arrow_drop_down_rounded,
+                color: trendColor,
                 size: 20,
               ),
               Text(
                 '${isPositive ? '+' : ''}${changePercent.toStringAsFixed(2)}%',
                 style: TextStyle(
-                  color: color,
-                  fontWeight: FontWeight.bold,
+                  color: trendColor,
+                  fontWeight: FontWeight.w700,
                   fontSize: 13,
+                  fontFeatures: const [FontFeature.tabularFigures()],
                 ),
               ),
             ],
@@ -196,10 +240,17 @@ class _AssetChartViewState extends State<AssetChartView> {
     );
   }
 
-  Widget _buildChartContent() {
+  Widget _buildChartContent(ThemeData theme, bool isDark) {
     if (_isLoading) {
-      return const Center(
-        child: CircularProgressIndicator(strokeWidth: 2),
+      return Center(
+        child: SizedBox(
+          width: 28,
+          height: 28,
+          child: CircularProgressIndicator(
+            strokeWidth: 2,
+            valueColor: AlwaysStoppedAnimation<Color>(theme.colorScheme.primary),
+          ),
+        ),
       );
     }
 
@@ -208,11 +259,18 @@ class _AssetChartViewState extends State<AssetChartView> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.show_chart, color: Colors.grey[600], size: 40),
+            Icon(
+              Icons.show_chart_rounded,
+              color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
+              size: 38,
+            ),
             const SizedBox(height: 8),
             Text(
               'Historical chart unavailable for this asset',
-              style: TextStyle(color: Colors.grey[500], fontSize: 13),
+              style: TextStyle(
+                color: theme.colorScheme.onSurfaceVariant,
+                fontSize: 13,
+              ),
             ),
           ],
         ),
@@ -220,7 +278,7 @@ class _AssetChartViewState extends State<AssetChartView> {
     }
 
     final isPositive = _points.last.price >= _points.first.price;
-    final lineColor = isPositive ? const Color(0xFF00E676) : const Color(0xFFFF5252);
+    final lineColor = isPositive ? const Color(0xFF00C805) : const Color(0xFFFF5000);
 
     // Compute min and max
     double minPrice = _points.first.price;
@@ -237,6 +295,10 @@ class _AssetChartViewState extends State<AssetChartView> {
       return FlSpot(entry.key.toDouble(), entry.value.price);
     }).toList();
 
+    final gridLineColor = isDark
+        ? Colors.white.withValues(alpha: 0.04)
+        : Colors.black.withValues(alpha: 0.04);
+
     return LineChart(
       LineChartData(
         minX: 0,
@@ -246,9 +308,11 @@ class _AssetChartViewState extends State<AssetChartView> {
         gridData: FlGridData(
           show: true,
           drawVerticalLine: false,
-          horizontalInterval: (adjustedMaxY - adjustedMinY) / 4,
+          horizontalInterval: (adjustedMaxY - adjustedMinY) / 4 > 0
+              ? (adjustedMaxY - adjustedMinY) / 4
+              : 1.0,
           getDrawingHorizontalLine: (value) => FlLine(
-            color: Colors.white10,
+            color: gridLineColor,
             strokeWidth: 1,
             dashArray: [4, 4],
           ),
@@ -259,7 +323,8 @@ class _AssetChartViewState extends State<AssetChartView> {
           enabled: true,
           handleBuiltInTouches: true,
           touchTooltipData: LineTouchTooltipData(
-            getTooltipColor: (_) => Colors.grey[900]!,
+            getTooltipColor: (_) =>
+                isDark ? const Color(0xFF1B222D) : const Color(0xFF1E293B),
             tooltipRoundedRadius: 8,
             getTooltipItems: (touchedSpots) {
               return touchedSpots.map((spot) {
@@ -279,6 +344,30 @@ class _AssetChartViewState extends State<AssetChartView> {
               }).toList();
             },
           ),
+          getTouchedSpotIndicator: (LineChartBarData barData, List<int> spotIndexes) {
+            return spotIndexes.map((spotIndex) {
+              return TouchedSpotIndicatorData(
+                FlLine(
+                  color: isDark
+                      ? Colors.white.withValues(alpha: 0.25)
+                      : Colors.black.withValues(alpha: 0.2),
+                  strokeWidth: 1.5,
+                  dashArray: [4, 4],
+                ),
+                FlDotData(
+                  show: true,
+                  getDotPainter: (spot, percent, barData, index) {
+                    return FlDotCirclePainter(
+                      radius: 5,
+                      color: lineColor,
+                      strokeWidth: 2,
+                      strokeColor: isDark ? const Color(0xFF0A0E14) : Colors.white,
+                    );
+                  },
+                ),
+              );
+            }).toList();
+          },
           touchCallback: (event, response) {
             if (response?.lineBarSpots != null &&
                 response!.lineBarSpots!.isNotEmpty) {
@@ -299,10 +388,10 @@ class _AssetChartViewState extends State<AssetChartView> {
           LineChartBarData(
             spots: spots,
             isCurved: true,
-            curveSmoothness: 0.1,
+            curveSmoothness: 0.18,
             preventCurveOverShooting: true,
             color: lineColor,
-            barWidth: 2,
+            barWidth: 2.2,
             isStrokeCapRound: true,
             dotData: const FlDotData(show: false),
             belowBarData: BarAreaData(
@@ -311,8 +400,8 @@ class _AssetChartViewState extends State<AssetChartView> {
                 begin: Alignment.topCenter,
                 end: Alignment.bottomCenter,
                 colors: [
-                  lineColor.withAlpha(64),
-                  lineColor.withAlpha(0),
+                  lineColor.withValues(alpha: 0.18),
+                  lineColor.withValues(alpha: 0.0),
                 ],
               ),
             ),
@@ -322,7 +411,7 @@ class _AssetChartViewState extends State<AssetChartView> {
     );
   }
 
-  Widget _buildTimeframeSelector() {
+  Widget _buildTimeframeSelector(ThemeData theme, bool isDark) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
       children: _ranges.map((range) {
@@ -337,17 +426,24 @@ class _AssetChartViewState extends State<AssetChartView> {
             }
           },
           borderRadius: BorderRadius.circular(8),
-          child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 180),
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 7),
             decoration: BoxDecoration(
-              color: isSelected ? Colors.white12 : Colors.transparent,
+              color: isSelected
+                  ? (isDark
+                      ? Colors.white.withValues(alpha: 0.1)
+                      : Colors.black.withValues(alpha: 0.06))
+                  : Colors.transparent,
               borderRadius: BorderRadius.circular(8),
             ),
             child: Text(
               range,
               style: TextStyle(
-                color: isSelected ? Colors.white : Colors.grey[500],
-                fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                color: isSelected
+                    ? theme.colorScheme.onSurface
+                    : theme.colorScheme.onSurfaceVariant,
+                fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
                 fontSize: 13,
               ),
             ),

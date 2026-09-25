@@ -10,11 +10,19 @@ class SettingsPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Settings'),
-        centerTitle: true,
+        title: Text(
+          'Settings',
+          style: TextStyle(
+            fontSize: 28,
+            fontWeight: FontWeight.w800,
+            color: Theme.of(context).colorScheme.onSurface,
+            letterSpacing: -0.5,
+          ),
+        ),
+        centerTitle: false,
         elevation: 0,
         backgroundColor: Colors.transparent,
-        foregroundColor: Theme.of(context).colorScheme.onSurface,
+        automaticallyImplyLeading: Navigator.canPop(context),
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
@@ -121,13 +129,14 @@ class SettingsPage extends StatelessWidget {
 
   Widget _buildSectionHeader(BuildContext context, String title) {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(0, 16.0, 0, 12.0),
+      padding: const EdgeInsets.fromLTRB(4.0, 18.0, 0, 8.0),
       child: Text(
-        title,
+        title.toUpperCase(),
         style: TextStyle(
-          fontSize: 16,
-          fontWeight: FontWeight.bold,
-          color: Theme.of(context).colorScheme.primary,
+          fontSize: 12,
+          fontWeight: FontWeight.w700,
+          letterSpacing: 0.8,
+          color: Theme.of(context).colorScheme.onSurfaceVariant,
         ),
       ),
     );
@@ -140,29 +149,43 @@ class SettingsPage extends StatelessWidget {
     required String subtitle,
     required VoidCallback onTap,
   }) {
+    final theme = Theme.of(context);
     return Card(
-      margin: const EdgeInsets.symmetric(vertical: 8.0),
+      margin: const EdgeInsets.symmetric(vertical: 4.0),
       child: ListTile(
-        leading: Icon(icon, color: Theme.of(context).colorScheme.primary, size: 28),
+        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+        leading: Container(
+          width: 36,
+          height: 36,
+          decoration: BoxDecoration(
+            color: const Color(0xFF00C805).withValues(alpha: 0.12),
+            borderRadius: BorderRadius.circular(10),
+          ),
+          child: Icon(
+            icon,
+            color: const Color(0xFF00C805),
+            size: 20,
+          ),
+        ),
         title: Text(
           title,
           style: TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.w500,
-            color: Theme.of(context).colorScheme.onSurface,
+            fontSize: 15,
+            fontWeight: FontWeight.w600,
+            color: theme.colorScheme.onSurface,
           ),
         ),
         subtitle: Text(
           subtitle,
           style: TextStyle(
             fontSize: 12,
-            color: Theme.of(context).colorScheme.onSurfaceVariant,
+            color: theme.colorScheme.onSurfaceVariant,
           ),
         ),
         trailing: Icon(
-          Icons.arrow_forward_ios,
-          size: 16,
-          color: Theme.of(context).colorScheme.onSurfaceVariant,
+          Icons.chevron_right_rounded,
+          size: 20,
+          color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.6),
         ),
         onTap: onTap,
       ),
@@ -181,14 +204,14 @@ class SettingsPage extends StatelessWidget {
             .toSet();
 
         String providerText;
-        Color statusColor = Colors.green;
+        Color statusColor = const Color(0xFF00C805);
 
         if (assets.isEmpty) {
           providerText = 'Connecting to market data service...';
           statusColor = Colors.orange;
         } else if (sources.contains('SERVER_ERROR') && sources.length == 1) {
           providerText = 'Server-side Error: Failed to fetch market quotes';
-          statusColor = Colors.red;
+          statusColor = const Color(0xFFFF5000);
         } else {
           final usCryptoSources = assets
               .where((a) => a.type == AssetType.crypto || (a.type == AssetType.stock && !a.symbol.endsWith('.IS')))
@@ -234,11 +257,11 @@ class SettingsPage extends StatelessWidget {
           final isServerError = sources.contains('SERVER_ERROR');
 
           if (isServerError) {
-            statusColor = Colors.red;
+            statusColor = const Color(0xFFFF5000);
           } else if (isFallbackActive) {
             statusColor = Colors.orange;
           } else {
-            statusColor = Colors.green;
+            statusColor = const Color(0xFF00C805);
           }
 
           providerText = 'US/Crypto: $usCryptoLabel • BIST/Forex: $bistForexLabel';

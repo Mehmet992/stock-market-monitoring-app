@@ -20,6 +20,8 @@ class AssetDetailPage extends StatelessWidget {
   });
 
   void _openSetTargetPriceDialog(BuildContext context, MarketAsset displayAsset) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
     final controller = TextEditingController(
       text: (displayAsset.targetAlertPrice != null && displayAsset.targetAlertPrice! > 0)
           ? displayAsset.targetAlertPrice.toString()
@@ -33,23 +35,36 @@ class AssetDetailPage extends StatelessWidget {
         return StatefulBuilder(
           builder: (context, setDialogState) {
             return AlertDialog(
-              backgroundColor: Colors.grey[900],
+              backgroundColor: theme.colorScheme.surface,
+              surfaceTintColor: Colors.transparent,
               shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(16),
+                borderRadius: BorderRadius.circular(20),
+                side: BorderSide(
+                  color: isDark
+                      ? Colors.white.withValues(alpha: 0.08)
+                      : Colors.black.withValues(alpha: 0.08),
+                ),
               ),
-              title: const Text(
+              title: Text(
                 'Set Target Price Alert',
-                style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                style: TextStyle(
+                  color: theme.colorScheme.onSurface,
+                  fontWeight: FontWeight.w700,
+                  fontSize: 18,
+                ),
               ),
               content: Column(
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'Enter target price for ${displayAsset.displayName}. You will be notified when the price reaches this target.',
-                    style: TextStyle(fontSize: 13, color: Colors.grey[400]),
+                    'Get notified automatically when ${displayAsset.displayName} reaches this price.',
+                    style: TextStyle(
+                      fontSize: 13,
+                      color: theme.colorScheme.onSurfaceVariant,
+                    ),
                   ),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: 18),
                   TextField(
                     controller: controller,
                     autofocus: true,
@@ -57,51 +72,66 @@ class AssetDetailPage extends StatelessWidget {
                     inputFormatters: [
                       FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*')),
                     ],
-                    style: const TextStyle(color: Colors.white),
+                    style: TextStyle(
+                      color: theme.colorScheme.onSurface,
+                      fontWeight: FontWeight.w600,
+                    ),
                     decoration: InputDecoration(
                       labelText: 'Target Price (${displayAsset.currency})',
-                      labelStyle: TextStyle(color: Colors.grey[400]),
-                      hintText: 'e.g. 150.00',
-                      hintStyle: TextStyle(color: Colors.grey[600]),
+                      labelStyle: TextStyle(color: theme.colorScheme.onSurfaceVariant),
+                      hintText: 'e.g. ${displayAsset.regularPrice.toStringAsFixed(2)}',
+                      hintStyle: TextStyle(
+                        color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
+                      ),
                       errorText: dialogError,
                       filled: true,
-                      fillColor: Colors.grey[850],
+                      fillColor: isDark
+                          ? const Color(0xFF141A23)
+                          : const Color(0xFFF0F3F6),
                       border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(10),
+                        borderRadius: BorderRadius.circular(12),
                         borderSide: BorderSide.none,
                       ),
                       focusedBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(10),
-                        borderSide: const BorderSide(color: Colors.blueAccent),
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: const BorderSide(color: Color(0xFF00C805), width: 1.5),
                       ),
                     ),
                   ),
                 ],
               ),
+              actionsPadding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
               actions: [
                 TextButton(
                   onPressed: () => Navigator.pop(dialogContext),
-                  child: const Text('Cancel', style: TextStyle(color: Colors.grey)),
+                  child: Text(
+                    'Cancel',
+                    style: TextStyle(
+                      color: theme.colorScheme.onSurfaceVariant,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
                 ),
                 ElevatedButton(
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.blueAccent,
-                    foregroundColor: Colors.white,
+                    backgroundColor: const Color(0xFF00C805),
+                    foregroundColor: Colors.black,
+                    elevation: 0,
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8),
+                      borderRadius: BorderRadius.circular(12),
                     ),
+                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
                   ),
                   onPressed: () async {
                     final text = controller.text.trim();
                     if (text.isEmpty) {
-                      //The reason of passing a null value is clearing the target price when the text is empty
+                      // Clearing the target price when empty
                       await watchlistService.updateTargetPrice(displayAsset, null);
                       if (context.mounted) {
                         Navigator.pop(dialogContext);
                         ScaffoldMessenger.of(context).showSnackBar(
                           SnackBar(
                             content: Text('Target price cleared for ${displayAsset.displayName}'),
-                            backgroundColor: Colors.grey[700],
                             duration: const Duration(seconds: 2),
                           ),
                         );
@@ -125,13 +155,15 @@ class AssetDetailPage extends StatelessWidget {
                       ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(
                           content: Text('Target price of $parsed ${displayAsset.currency} saved!'),
-                          backgroundColor: Colors.green,
                           duration: const Duration(seconds: 2),
                         ),
                       );
                     }
                   },
-                  child: const Text('Save'),
+                  child: const Text(
+                    'Save Alert',
+                    style: TextStyle(fontWeight: FontWeight.w700),
+                  ),
                 ),
               ],
             );
@@ -143,6 +175,8 @@ class AssetDetailPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     return StreamBuilder<List<MarketAsset>>(
       stream: marketService?.marketDataStream ?? const Stream.empty(),
       builder: (context, marketSnapshot) {
@@ -170,9 +204,48 @@ class AssetDetailPage extends StatelessWidget {
 
             return Scaffold(
               appBar: AppBar(
-                title: Text(displayAsset.displayName),
-                backgroundColor: Colors.blueGrey[900],
+                title: Text(
+                  displayAsset.displayName,
+                  style: TextStyle(
+                    fontSize: 17,
+                    fontWeight: FontWeight.w700,
+                    color: theme.colorScheme.onSurface,
+                  ),
+                ),
+                centerTitle: true,
+                backgroundColor: Colors.transparent,
                 elevation: 0,
+                leading: IconButton(
+                  icon: Icon(
+                    Icons.arrow_back_ios_new_rounded,
+                    size: 18,
+                    color: theme.colorScheme.onSurface,
+                  ),
+                  onPressed: () => Navigator.pop(context),
+                ),
+                actions: [
+                  IconButton(
+                    icon: Icon(
+                      isWatched ? Icons.bookmark_rounded : Icons.bookmark_outline_rounded,
+                      color: isWatched
+                          ? const Color(0xFF00C805)
+                          : theme.colorScheme.onSurfaceVariant,
+                    ),
+                    onPressed: () {
+                      watchlistService.toggleWatchlist(displayAsset);
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text(
+                            isWatched
+                                ? '${displayAsset.displayName} removed from watchlist'
+                                : '${displayAsset.displayName} added to watchlist',
+                          ),
+                          duration: const Duration(seconds: 2),
+                        ),
+                      );
+                    },
+                  ),
+                ],
               ),
               body: AssetDetailView(
                 asset: displayAsset,
@@ -187,7 +260,6 @@ class AssetDetailPage extends StatelessWidget {
                             : '${displayAsset.displayName} added to watchlist',
                       ),
                       duration: const Duration(seconds: 2),
-                      backgroundColor: isWatched ? Colors.red[400] : Colors.green[400],
                     ),
                   );
                 },
@@ -200,5 +272,3 @@ class AssetDetailPage extends StatelessWidget {
     );
   }
 }
-
-

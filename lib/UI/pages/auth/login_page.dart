@@ -128,11 +128,14 @@ class _LoginPageState extends State<LoginPage> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
     return Scaffold(
       appBar: AppBar(
         elevation: 0,
         backgroundColor: Colors.transparent,
-        foregroundColor: Theme.of(context).colorScheme.onSurface,
+        foregroundColor: theme.colorScheme.onSurface,
         leading: null,
       ),
       body: SingleChildScrollView(
@@ -140,62 +143,79 @@ class _LoginPageState extends State<LoginPage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const SizedBox(height: 24),
+            const SizedBox(height: 16),
             Text(
               'Login',
-              style: Theme.of(context).textTheme.headlineLarge?.copyWith(
-                fontWeight: FontWeight.bold,
-                color: Colors.white,
+              style: theme.textTheme.headlineLarge?.copyWith(
+                fontWeight: FontWeight.w800,
+                color: theme.colorScheme.onSurface,
+                letterSpacing: -0.5,
               ),
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: 6),
             Text(
               'Welcome back to Stock Market Monitor',
-              style: Theme.of(
-                context,
-              ).textTheme.bodyMedium?.copyWith(color: Colors.grey[400]),
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: theme.colorScheme.onSurfaceVariant,
+              ),
             ),
-            const SizedBox(height: 48),
+            const SizedBox(height: 36),
             // Email Field
             TextField(
               controller: _emailController,
               keyboardType: TextInputType.emailAddress,
+              style: TextStyle(color: theme.colorScheme.onSurface),
               decoration: InputDecoration(
                 labelText: 'Email',
+                labelStyle: TextStyle(color: theme.colorScheme.onSurfaceVariant),
                 hintText: 'Enter your email',
-                prefixIcon: const Icon(Icons.email_outlined),
+                hintStyle: TextStyle(color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.5)),
+                prefixIcon: Icon(Icons.email_outlined, color: theme.colorScheme.onSurfaceVariant),
+                filled: true,
+                fillColor: isDark ? const Color(0xFF141A23) : const Color(0xFFF0F3F6),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide.none,
                 ),
                 enabledBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide(color: Colors.grey[700]!),
+                  borderSide: BorderSide(
+                    color: isDark ? Colors.white.withValues(alpha: 0.06) : Colors.black.withValues(alpha: 0.06),
+                  ),
                 ),
                 focusedBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
-                  borderSide: const BorderSide(color: Colors.blue, width: 2),
+                  borderSide: const BorderSide(color: Color(0xFF00C805), width: 1.5),
                 ),
               ),
             ),
-            const SizedBox(height: 24),
+            const SizedBox(height: 20),
             // Password Field with Show/Hide
             TextField(
               controller: _passwordController,
               obscureText: !_showPassword,
+              style: TextStyle(color: theme.colorScheme.onSurface),
               decoration: InputDecoration(
                 labelText: 'Password',
+                labelStyle: TextStyle(color: theme.colorScheme.onSurfaceVariant),
                 hintText: 'Enter your password',
-                prefixIcon: const Icon(Icons.lock_outlined),
+                hintStyle: TextStyle(color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.5)),
+                prefixIcon: Icon(Icons.lock_outlined, color: theme.colorScheme.onSurfaceVariant),
+                filled: true,
+                fillColor: isDark ? const Color(0xFF141A23) : const Color(0xFFF0F3F6),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide.none,
                 ),
                 enabledBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide(color: Colors.grey[700]!),
+                  borderSide: BorderSide(
+                    color: isDark ? Colors.white.withValues(alpha: 0.06) : Colors.black.withValues(alpha: 0.06),
+                  ),
                 ),
                 focusedBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
-                  borderSide: const BorderSide(color: Colors.blue, width: 2),
+                  borderSide: const BorderSide(color: Color(0xFF00C805), width: 1.5),
                 ),
               ),
             ),
@@ -213,14 +233,15 @@ class _LoginPageState extends State<LoginPage> {
                           _showPassword = value ?? false;
                         });
                       },
-                      activeColor: Colors.blue,
-                      checkColor: Colors.white,
+                      activeColor: const Color(0xFF00C805),
+                      checkColor: Colors.black,
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
                     ),
                     Text(
                       'Show password',
-                      style: Theme.of(
-                        context,
-                      ).textTheme.bodyMedium?.copyWith(color: Colors.grey[300]),
+                      style: theme.textTheme.bodyMedium?.copyWith(
+                        color: theme.colorScheme.onSurfaceVariant,
+                      ),
                     ),
                   ],
                 ),
@@ -228,38 +249,43 @@ class _LoginPageState extends State<LoginPage> {
                   onPressed: _handleForgotPassword,
                   child: const Text(
                     'Forgot?',
-                    style: TextStyle(color: Colors.blue, fontWeight: FontWeight.w600),
+                    style: TextStyle(
+                      color: Color(0xFF00C805),
+                      fontWeight: FontWeight.w700,
+                    ),
                   ),
                 ),
               ],
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 12),
             // Error Message
             if (_errorMessage != null)
               Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: Colors.red.withValues(alpha: 0.1),
-                  border: Border.all(color: Colors.red.withValues(alpha: 0.5)),
+                  color: const Color(0xFFFF5000).withValues(alpha: 0.1),
+                  border: Border.all(color: const Color(0xFFFF5000).withValues(alpha: 0.4)),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Text(
                   _errorMessage!,
-                  style: const TextStyle(color: Colors.red, fontSize: 14),
+                  style: const TextStyle(color: Color(0xFFFF5000), fontSize: 13, fontWeight: FontWeight.w500),
                 ),
               ),
-            const SizedBox(height: 32),
+            const SizedBox(height: 24),
             // Login Button
             SizedBox(
               width: double.infinity,
-              height: 56,
+              height: 52,
               child: ElevatedButton(
                 onPressed: _isLoading ? null : _handleLogin,
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.blue,
-                  disabledBackgroundColor: Colors.grey[700],
+                  backgroundColor: const Color(0xFF00C805),
+                  foregroundColor: Colors.black,
+                  elevation: 0,
+                  disabledBackgroundColor: const Color(0xFF00C805).withValues(alpha: 0.3),
                   shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
+                    borderRadius: BorderRadius.circular(26),
                   ),
                 ),
                 child: _isLoading
@@ -269,37 +295,41 @@ class _LoginPageState extends State<LoginPage> {
                         child: CircularProgressIndicator(
                           strokeWidth: 2,
                           valueColor: AlwaysStoppedAnimation<Color>(
-                            Colors.white,
+                            Colors.black,
                           ),
                         ),
                       )
-                    : Text(
-                        'Login',
-                        style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                          color: Colors.white,
-                          fontWeight: FontWeight.bold,
+                    : const Text(
+                        'Log In',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w700,
+                          letterSpacing: 0.2,
                         ),
                       ),
               ),
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 12),
             // Continue as Guest Button
             SizedBox(
               width: double.infinity,
-              height: 56,
+              height: 52,
               child: OutlinedButton(
                 onPressed: _isLoading ? null : _handleAnonymousLogin,
                 style: OutlinedButton.styleFrom(
-                  side: BorderSide(color: Colors.grey[600]!),
+                  foregroundColor: theme.colorScheme.onSurface,
+                  side: BorderSide(
+                    color: isDark ? Colors.white.withValues(alpha: 0.15) : Colors.black.withValues(alpha: 0.15),
+                  ),
                   shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
+                    borderRadius: BorderRadius.circular(26),
                   ),
                 ),
-                child: Text(
+                child: const Text(
                   'Continue as Guest',
-                  style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                    color: Colors.grey[300],
-                    fontWeight: FontWeight.bold,
+                  style: TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w600,
                   ),
                 ),
               ),
@@ -311,19 +341,19 @@ class _LoginPageState extends State<LoginPage> {
               children: [
                 Text(
                   "Don't have an account? ",
-                  style: Theme.of(
-                    context,
-                  ).textTheme.bodyMedium?.copyWith(color: Colors.grey[400]),
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    color: theme.colorScheme.onSurfaceVariant,
+                  ),
                 ),
                 GestureDetector(
                   onTap: () {
                     Navigator.of(context).pushReplacementNamed('/signup');
                   },
-                  child: Text(
+                  child: const Text(
                     'Sign up',
-                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      color: Colors.blue,
-                      fontWeight: FontWeight.bold,
+                    style: TextStyle(
+                      color: Color(0xFF00C805),
+                      fontWeight: FontWeight.w700,
                     ),
                   ),
                 ),
