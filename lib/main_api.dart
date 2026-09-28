@@ -13,17 +13,31 @@ const String kCloudBackendUrl = 'https://stock-market-backend-q5vu.onrender.com/
 
 /// Base URL for the central Node.js backend aggregator.
 ///
-/// In debug mode:
-/// - Android emulator uses 10.0.2.2 to access the host machine's localhost.
-/// - iOS simulator, desktop, and other environments use localhost.
-/// In release mode: uses production cloud URL.
+/// Priority:
+/// 1. Custom URL via `--dart-define=BACKEND_URL=https://...`
+/// 2. Local backend flags when developing:
+///    - `--dart-define=USE_EMULATOR=true`: Routes to `10.0.2.2:8080` (Android emulator loopback)
+///    - `--dart-define=USE_LOCAL=true`: Routes to `localhost:8080` (Desktop, iOS simulator, or physical phone with `adb reverse tcp:8080 tcp:8080`)
+/// 3. Default: Always uses production [kCloudBackendUrl] across all physical phones and release modes.
 String get kBackendBaseUrl {
-  if (kDebugMode) {
+  const customUrl = String.fromEnvironment('BACKEND_URL');
+  if (customUrl.isNotEmpty) {
+    return customUrl;
+  }
+
+  const useEmulator = bool.fromEnvironment('USE_EMULATOR', defaultValue: false);
+  if (useEmulator) {
     if (!kIsWeb && Platform.isAndroid) {
       return 'http://10.0.2.2:8080/api/v1';
     }
     return 'http://localhost:8080/api/v1';
   }
+
+  const useLocal = bool.fromEnvironment('USE_LOCAL', defaultValue: false);
+  if (useLocal) {
+    return 'http://localhost:8080/api/v1';
+  }
+
   return kCloudBackendUrl;
 }
 

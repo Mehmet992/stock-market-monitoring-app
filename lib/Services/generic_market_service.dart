@@ -55,15 +55,30 @@ class GenericMarketService {
   }
 
   Future<void> _fetchAndBroadcast() async {
-    //Calling the function that returns all the assets and makes api calls
-    final List<MarketAsset> assets = await fetchAllAssetsConcurrently();
+    try {
+      // Calling the function that returns all the assets and makes api calls
+      final List<MarketAsset> assets = await fetchAllAssetsConcurrently();
 
-    if (assets.isNotEmpty && !_marketDataController.isClosed) {
-      _lastData = assets;
-      _marketDataController.add(assets);
-      if (kDebugMode) {
-        debugPrint(
-            '[GenericMarketService] Broadcasted ${assets.length} assets');
+      if (_marketDataController.isClosed) return;
+
+      if (assets.isNotEmpty) {
+        _lastData = assets;
+        _marketDataController.add(assets);
+        if (kDebugMode) {
+          debugPrint(
+              '[GenericMarketService] Broadcasted ${assets.length} assets');
+        }
+      } else if (_lastData == null) {
+        // Emit empty list so StreamBuilder transitions from ConnectionState.waiting
+        _marketDataController.add([]);
+      }
+    } catch (e) {
+      if (!_marketDataController.isClosed) {
+        if (_lastData != null) {
+          _marketDataController.add(_lastData!);
+        } else {
+          _marketDataController.addError(e);
+        }
       }
     }
   }
