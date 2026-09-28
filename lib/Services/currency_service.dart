@@ -99,6 +99,37 @@ class CurrencyService {
     return getUsdExchangeRateForCode(targetCurrency.code);
   }
 
+  /// Converts a single price amount between two currencies (taking forex pairs into account)
+  double convertPrice(
+    double price, {
+    required String from,
+    required String to,
+    String? symbol,
+  }) {
+    if (price == 0.0) return 0.0;
+    final fromCode = normalizeCurrencyCode(from, symbol: symbol);
+    final toCode = normalizeCurrencyCode(to);
+
+    if (fromCode == toCode) return price;
+
+    if (symbol != null && symbol.endsWith('=X')) {
+      if (symbol.startsWith('USD')) {
+        // USD/X pair (e.g. USDTRY=X). Quote currency is already X.
+        return price;
+      } else if (symbol.length >= 6 && symbol.substring(3, 6) == 'USD') {
+        // A/USD pair (e.g. EURUSD=X). Price is in USD.
+        final rate = getUsdExchangeRateForCode(toCode);
+        return price * rate;
+      }
+    }
+
+    final double fromUsdRate = getUsdExchangeRateForCode(fromCode);
+    final double toUsdRate = getUsdExchangeRateForCode(toCode);
+    final double factor = (fromUsdRate > 0) ? (toUsdRate / fromUsdRate) : 1.0;
+
+    return price * factor;
+  }
+
   /// Converts a single MarketAsset to target display currency.
   MarketAsset convertAsset(MarketAsset asset, [Currency? targetCurrency]) {
     final target = targetCurrency ?? defaultCurrency;
@@ -119,12 +150,17 @@ class CurrencyService {
         final double rate = getUsdExchangeRate(target);
         final double convertedPrice = asset.regularPrice * rate;
         final double convertedPrevClose = asset.previousClose * rate;
+        final double? convertedTargetPrice = asset.targetAlertPrice != null
+            ? asset.targetAlertPrice! * rate
+            : null;
 
         return asset.copyWith(
           regularPrice: convertedPrice,
           previousClose: convertedPrevClose,
           currency: target.code,
           displayName: '$baseCode / ${target.code}',
+          targetAlertPrice: convertedTargetPrice,
+          baseCurrency: asset.baseCurrency ?? 'USD',
         );
       }
     }
@@ -142,11 +178,16 @@ class CurrencyService {
     final double factor = (fromUsdRate > 0) ? (toUsdRate / fromUsdRate) : 1.0;
     final double convertedPrice = asset.regularPrice * factor;
     final double convertedPrevClose = asset.previousClose * factor;
+    final double? convertedTargetPrice = asset.targetAlertPrice != null
+        ? asset.targetAlertPrice! * factor
+        : null;
 
     return asset.copyWith(
       regularPrice: convertedPrice,
       previousClose: convertedPrevClose,
       currency: target.code,
+      targetAlertPrice: convertedTargetPrice,
+      baseCurrency: asset.baseCurrency ?? fromCode,
     );
   }
 

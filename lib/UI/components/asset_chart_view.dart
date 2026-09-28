@@ -3,16 +3,19 @@ import 'package:flutter/material.dart';
 import 'package:stock_market_monitoring_app/Enums/currency.dart';
 import 'package:stock_market_monitoring_app/Models/chart_point.dart';
 import 'package:stock_market_monitoring_app/Services/chart_service.dart';
+import 'package:stock_market_monitoring_app/Services/currency_service.dart';
 
 class AssetChartView extends StatefulWidget {
   final String symbol;
   final String currency;
+  final String? baseCurrency;
   final ChartService? chartService;
 
   const AssetChartView({
     super.key,
     required this.symbol,
     required this.currency,
+    this.baseCurrency,
     this.chartService,
   });
 
@@ -29,6 +32,7 @@ class AssetChartView extends StatefulWidget {
 
     for (int i = 0; i < maxPoints; i++) {
       final int index = (i * step).round().clamp(0, raw.length - 1);
+      //Empty for first time initialization, other one ensures that the next points time stamp is not the same as the previous
       if (sampled.isEmpty || sampled.last.timestamp != raw[index].timestamp) {
         sampled.add(raw[index]);
       }
@@ -65,7 +69,9 @@ class _AssetChartViewState extends State<AssetChartView> {
   @override
   void didUpdateWidget(covariant AssetChartView oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (oldWidget.symbol != widget.symbol) {
+    if (oldWidget.symbol != widget.symbol ||
+        oldWidget.currency != widget.currency ||
+        oldWidget.baseCurrency != widget.baseCurrency) {
       _loadChartData(_selectedRange);
     }
   }
@@ -81,9 +87,22 @@ class _AssetChartViewState extends State<AssetChartView> {
       range: range.toLowerCase(),
     );
 
+    final baseCode = widget.baseCurrency ??
+        CurrencyService().normalizeCurrencyCode(null, symbol: widget.symbol);
+
+    final convertedPoints = points.map((p) {
+      final convertedPrice = CurrencyService().convertPrice(
+        p.price,
+        from: baseCode,
+        to: widget.currency,
+        symbol: widget.symbol,
+      );
+      return ChartPoint(timestamp: p.timestamp, price: convertedPrice);
+    }).toList();
+
     if (mounted) {
       setState(() {
-        _points = AssetChartView.downsamplePoints(points);
+        _points = AssetChartView.downsamplePoints(convertedPoints);
         _isLoading = false;
       });
     }

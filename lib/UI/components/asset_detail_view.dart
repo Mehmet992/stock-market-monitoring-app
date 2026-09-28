@@ -143,6 +143,7 @@ class AssetDetailView extends StatelessWidget {
           AssetChartView(
             symbol: asset.symbol,
             currency: asset.currency,
+            baseCurrency: asset.baseCurrency,
           ),
           const SizedBox(height: 16),
 

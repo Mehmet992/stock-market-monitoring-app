@@ -54,10 +54,13 @@ void callbackDispatcher() {
       final List<MarketAsset> rawLiveAssets = await fetchAllAssetsConcurrently();
       final List<MarketAsset> liveAssets =
           CurrencyService().convertAssets(rawLiveAssets, displayCurrency);
+      final List<MarketAsset> convertedTargetAssets =
+          CurrencyService().convertAssets(targetAssets, displayCurrency);
 
       // 4. Compare regular price against targetAlertPrice for both UP and DOWN conditions
-      for (final targetAsset in targetAssets) {
-        final double target = targetAsset.targetAlertPrice!;
+      for (final targetAsset in convertedTargetAssets) {
+        final double? target = targetAsset.targetAlertPrice;
+        if (target == null || target <= 0) continue;
         final liveAsset = liveAssets.firstWhere(
           (a) => a.symbol == targetAsset.symbol,
           orElse: () => targetAsset,

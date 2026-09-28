@@ -19,14 +19,17 @@ class AssetDetailPage extends StatelessWidget {
     this.marketService,
   });
 
-  void _openSetTargetPriceDialog(BuildContext context, MarketAsset displayAsset) {
+  void _openSetTargetPriceDialog(
+    BuildContext context,
+    MarketAsset displayAsset,
+    MarketAsset latestLiveAsset,
+  ) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
-    final controller = TextEditingController(
-      text: (displayAsset.targetAlertPrice != null && displayAsset.targetAlertPrice! > 0)
-          ? displayAsset.targetAlertPrice.toString()
-          : '',
-    );
+    final initialPrice = (displayAsset.targetAlertPrice != null && displayAsset.targetAlertPrice! > 0)
+        ? displayAsset.targetAlertPrice!.toStringAsFixed(displayAsset.decimalPrecision)
+        : '';
+    final controller = TextEditingController(text: initialPrice);
     String? dialogError;
 
     showDialog(
@@ -126,7 +129,7 @@ class AssetDetailPage extends StatelessWidget {
                     final text = controller.text.trim();
                     if (text.isEmpty) {
                       // Clearing the target price when empty
-                      await watchlistService.updateTargetPrice(displayAsset, null);
+                      await watchlistService.updateTargetPrice(latestLiveAsset, null);
                       if (context.mounted) {
                         Navigator.pop(dialogContext);
                         ScaffoldMessenger.of(context).showSnackBar(
@@ -147,7 +150,24 @@ class AssetDetailPage extends StatelessWidget {
                       return;
                     }
 
-                    await watchlistService.updateTargetPrice(displayAsset, parsed);
+                    // Convert parsed price from display currency to native base currency
+                    final baseCode = displayAsset.baseCurrency ??
+                        CurrencyService().normalizeCurrencyCode(latestLiveAsset.currency, symbol: displayAsset.symbol);
+
+                    final double nativeTargetPrice = CurrencyService().convertPrice(
+                      parsed,
+                      from: displayAsset.currency,
+                      to: baseCode,
+                      symbol: displayAsset.symbol,
+                    );
+
+                    final nativeAssetToSave = latestLiveAsset.copyWith(
+                      currency: baseCode,
+                      baseCurrency: baseCode,
+                      targetAlertPrice: nativeTargetPrice,
+                    );
+
+                    await watchlistService.updateTargetPrice(nativeAssetToSave, nativeTargetPrice);
                     await NotificationService().initialize();
 
                     if (context.mounted) {
@@ -196,11 +216,21 @@ class AssetDetailPage extends StatelessWidget {
               orElse: () => latestLiveAsset,
             );
 
+            final baseCode = latestLiveAsset.baseCurrency ??
+                CurrencyService().normalizeCurrencyCode(latestLiveAsset.currency, symbol: latestLiveAsset.symbol);
+
             final combinedAsset = latestLiveAsset.copyWith(
+              currency: baseCode,
+              baseCurrency: baseCode,
               targetAlertPrice: watchedAsset.targetAlertPrice,
             );
 
             final displayAsset = CurrencyService().convertAsset(combinedAsset);
+
+            final nativeAsset = latestLiveAsset.copyWith(
+              currency: baseCode,
+              baseCurrency: baseCode,
+            );
 
             return Scaffold(
               appBar: AppBar(
@@ -232,7 +262,7 @@ class AssetDetailPage extends StatelessWidget {
                           : theme.colorScheme.onSurfaceVariant,
                     ),
                     onPressed: () {
-                      watchlistService.toggleWatchlist(displayAsset);
+                      watchlistService.toggleWatchlist(nativeAsset);
                       ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(
                           content: Text(
@@ -251,7 +281,7 @@ class AssetDetailPage extends StatelessWidget {
                 asset: displayAsset,
                 isWatched: isWatched,
                 onWatchlistToggle: () {
-                  watchlistService.toggleWatchlist(displayAsset);
+                  watchlistService.toggleWatchlist(nativeAsset);
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
                       content: Text(
@@ -263,7 +293,9 @@ class AssetDetailPage extends StatelessWidget {
                     ),
                   );
                 },
-                onSetTargetPrice: isWatched ? () => _openSetTargetPriceDialog(context, displayAsset) : null,
+                onSetTargetPrice: isWatched
+                    ? () => _openSetTargetPriceDialog(context, displayAsset, latestLiveAsset)
+                    : null,
               ),
             );
           },

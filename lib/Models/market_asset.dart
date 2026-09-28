@@ -12,6 +12,7 @@ class MarketAsset {
   final DateTime? addedAt;
   final double? targetAlertPrice;
   final bool isTargetAlertTriggered;
+  final String? baseCurrency;
 
   MarketAsset({
     required this.regularPrice,
@@ -24,7 +25,8 @@ class MarketAsset {
     this.addedAt,
     this.targetAlertPrice,
     this.isTargetAlertTriggered = false,
-  });
+    String? baseCurrency,
+  }) : baseCurrency = baseCurrency ?? currency;
 
   /// Returns the human-readable unit of measurement for this asset
   String get unitOfMeasure {
@@ -83,6 +85,7 @@ class MarketAsset {
     DateTime? addedAt,
     Object? targetAlertPrice = _sentinel,
     bool? isTargetAlertTriggered,
+    String? baseCurrency,
   }) {
     return MarketAsset(
       regularPrice: regularPrice ?? this.regularPrice,
@@ -98,6 +101,7 @@ class MarketAsset {
           : targetAlertPrice as double?,
       isTargetAlertTriggered:
           isTargetAlertTriggered ?? this.isTargetAlertTriggered,
+      baseCurrency: baseCurrency ?? this.baseCurrency,
     );
   }
 
@@ -112,10 +116,12 @@ class MarketAsset {
       final meta = json['chart']['result'][0]['meta'];
       final symbol = meta['symbol'] ?? config.symbol;
       final rawCurrency = meta['currency'] as String?;
+      final normalizedCurrency = CurrencyService().normalizeCurrencyCode(rawCurrency, symbol: symbol);
       return MarketAsset(
         regularPrice: (meta['regularMarketPrice'] as num?)?.toDouble() ?? 0.0,
         previousClose: (meta['chartPreviousClose'] as num?)?.toDouble() ?? 0.0,
-        currency: CurrencyService().normalizeCurrencyCode(rawCurrency, symbol: symbol),
+        currency: normalizedCurrency,
+        baseCurrency: normalizedCurrency,
         symbol: symbol,
         displayName: config.displayName,
         type: config.type,
@@ -133,11 +139,13 @@ class MarketAsset {
         ?? 0.0;
     final symbol = json['symbol'] ?? config.symbol;
     final rawCurrency = json['currency'] as String?;
+    final normalizedCurrency = CurrencyService().normalizeCurrencyCode(rawCurrency, symbol: symbol);
 
     return MarketAsset(
       regularPrice: price,
       previousClose: prevClose,
-      currency: CurrencyService().normalizeCurrencyCode(rawCurrency, symbol: symbol),
+      currency: normalizedCurrency,
+      baseCurrency: normalizedCurrency,
       symbol: symbol,
       displayName: config.displayName,
       type: config.type,
@@ -147,10 +155,12 @@ class MarketAsset {
 
   //Factory to reconstruct MarketAssets when reading from the FireStore subcollection
   factory MarketAsset.fromFirestore(Map<String, dynamic> docData, String docId) {
+    final normalizedCurrency = CurrencyService().normalizeCurrencyCode(docData['currency'] as String?, symbol: docId);
     return MarketAsset(
       regularPrice: 0.0, //Mock information until the real data fetched
       previousClose: 0.0,
-      currency: CurrencyService().normalizeCurrencyCode(docData['currency'] as String?, symbol: docId),
+      currency: normalizedCurrency,
+      baseCurrency: normalizedCurrency,
       symbol: docId,
       displayName: docData['displayName'] ?? '',
       type: AssetType.values.firstWhere(

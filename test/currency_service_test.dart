@@ -192,6 +192,95 @@ void main() {
       final copiedCleared = asset.copyWith(targetAlertPrice: null);
       expect(copiedCleared.targetAlertPrice, null);
     });
+
+    test('convertAsset converts targetAlertPrice proportionally to display currency', () {
+      currencyService.updateRatesFromMarketAssets([
+        MarketAsset(
+          regularPrice: 40.0,
+          previousClose: 40.0,
+          currency: 'TRY',
+          symbol: 'USDTRY=X',
+          displayName: 'USD / TRY',
+          type: AssetType.forex,
+        ),
+      ]);
+
+      final asset = MarketAsset(
+        regularPrice: 100.0,
+        previousClose: 95.0,
+        currency: 'USD',
+        symbol: 'AAPL',
+        displayName: 'Apple',
+        type: AssetType.stock,
+        targetAlertPrice: 150.0,
+      );
+
+      final convertedTry = currencyService.convertAsset(asset, Currency.tryLira);
+      expect(convertedTry.currency, 'TRY');
+      expect(convertedTry.regularPrice, 4000.0);
+      expect(convertedTry.targetAlertPrice, 6000.0); // 150 * 40.0 = 6000.0
+      expect(convertedTry.baseCurrency, 'USD');
+
+      // Now convert back to USD
+      final convertedBackUsd = currencyService.convertAsset(convertedTry, Currency.usd);
+      expect(convertedBackUsd.currency, 'USD');
+      expect(convertedBackUsd.regularPrice, 100.0);
+      expect(convertedBackUsd.targetAlertPrice, 150.0);
+      expect(convertedBackUsd.baseCurrency, 'USD');
+    });
+
+    test('convertPrice accurately converts prices between various currencies', () {
+      currencyService.updateRatesFromMarketAssets([
+        MarketAsset(
+          regularPrice: 40.0,
+          previousClose: 40.0,
+          currency: 'TRY',
+          symbol: 'USDTRY=X',
+          displayName: 'USD / TRY',
+          type: AssetType.forex,
+        ),
+        MarketAsset(
+          regularPrice: 1.25, // 1 EUR = 1.25 USD -> EUR rate = 0.8
+          previousClose: 1.25,
+          currency: 'USD',
+          symbol: 'EURUSD=X',
+          displayName: 'EUR / USD',
+          type: AssetType.forex,
+        ),
+      ]);
+
+      // USD to TRY
+      expect(currencyService.convertPrice(150.0, from: 'USD', to: 'TRY'), 6000.0);
+
+      // TRY to USD
+      expect(currencyService.convertPrice(6000.0, from: 'TRY', to: 'USD'), 150.0);
+
+      // TRY to EUR: 400 TRY = 10 USD = 8 EUR
+      expect(currencyService.convertPrice(400.0, from: 'TRY', to: 'EUR'), 8.0);
+
+      // EUR to TRY: 8 EUR = 10 USD = 400 TRY
+      expect(currencyService.convertPrice(8.0, from: 'EUR', to: 'TRY'), 400.0);
+
+      // Same currency returns unchanged
+      expect(currencyService.convertPrice(150.0, from: 'USD', to: 'USD'), 150.0);
+      expect(currencyService.convertPrice(0.0, from: 'USD', to: 'TRY'), 0.0);
+    });
+
+    test('MarketAsset baseCurrency is automatically initialized and preserved', () {
+      final asset = MarketAsset(
+        regularPrice: 200.0,
+        previousClose: 195.0,
+        currency: 'USD',
+        symbol: 'MSFT',
+        displayName: 'Microsoft',
+        type: AssetType.stock,
+      );
+
+      expect(asset.baseCurrency, 'USD');
+
+      final copied = asset.copyWith(regularPrice: 205.0);
+      expect(copied.baseCurrency, 'USD');
+    });
   });
 }
 
