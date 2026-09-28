@@ -8,8 +8,8 @@ import 'package:stock_market_monitoring_app/Enums/asset_types.dart';
 import 'ConfigClasses/market_config.dart';
 import 'Models/market_asset.dart';
 
-/// Production cloud backend URL
-const String kCloudBackendUrl = 'https://stock-market-backend-q5vu.onrender.com/api/v1';
+/// Production cloud backend URL (hosted on Railway)
+const String kCloudBackendUrl = 'https://stock-market-backend-production-0d99.up.railway.app/api/v1';
 
 /// Base URL for the central Node.js backend aggregator.
 ///
